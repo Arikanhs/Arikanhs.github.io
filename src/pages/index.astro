@@ -1,16 +1,15 @@
 ---
-import PageHeader from '../components/ui/PageHeader.astro';
 import ProjectGrid from '../components/ui/ProjectGrid.astro';
+import TerminalHero from '../components/ui/TerminalHero.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getProjects } from '../lib/content';
-import { SITE } from '../lib/site';
 
 const featured = (await getProjects()).filter((project) => project.data.featured);
 ---
 
 <BaseLayout>
   <div class="container-page">
-    <PageHeader title={SITE.name} lede={SITE.intro} path="~" />
+    <TerminalHero />
 
     {
       featured.length > 0 && (
@@ -35,7 +34,7 @@ const featured = (await getProjects()).filter((project) => project.data.featured
 
 <style>
   .selected {
-    margin-top: clamp(1rem, 0.5rem + 2vw, 2rem);
+    margin-top: 0.5rem;
   }
 
   .section-head {

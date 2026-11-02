@@ -1,0 +1,200 @@
+---
+// Home hero styled as a terminal session. All text is plain HTML (readable by
+// screen readers, search engines and without JS). On the first visit of a
+// session, an inline script adds .is-typing before first paint and CSS plays
+// the session: commands type out, output appears at once, like a real shell.
+// Reduced motion, no JS or a repeat visit show the final state immediately.
+import { SITE } from '../../lib/site';
+
+const steps = { whoami: 300, name: 900, focus: 1300, status: 1500, links: 1700, prompt: 1950 };
+const delay = (ms: number) => `--d: ${ms}ms`;
+---
+
+<section class="hero" aria-labelledby="hero-name">
+  <div class="terminal" id="hero-terminal">
+    <div class="bar" aria-hidden="true">
+      <span>hasan@arikan: ~</span>
+      <span>zsh</span>
+    </div>
+    <div class="screen">
+      <p class="line">
+        <span class="ps1" aria-hidden="true">~ $</span>
+        <span class="cmd" style={`--n: 6; ${delay(steps.whoami)}`}>whoami</span>
+      </p>
+      <div class="out" style={delay(steps.name)}>
+        <h1 id="hero-name" class="name">{SITE.name}</h1>
+        <p class="intro">{SITE.intro}</p>
+      </div>
+      <dl class="facts">
+        <div class="out" style={delay(steps.focus)}>
+          <dt>focus</dt>
+          <dd>{SITE.focus.join(' · ')}</dd>
+        </div>
+        <div class="out" style={delay(steps.status)}>
+          <dt>status</dt>
+          <dd>{SITE.status}</dd>
+        </div>
+        <div class="out" style={delay(steps.links)}>
+          <dt>links</dt>
+          <dd class="links">
+            <a class="link" href={SITE.githubUrl}>github<span aria-hidden="true"> ↗</span></a>
+            <a class="link" href={`mailto:${SITE.email}`}>email</a>
+            <a class="link" href="/resume/">cv</a>
+          </dd>
+        </div>
+      </dl>
+      <div class="line out" style={delay(steps.prompt)} aria-hidden="true">
+        <span class="ps1">~ $</span>
+        <span class="caret"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script is:inline>
+  (() => {
+    const terminal = document.getElementById('hero-terminal');
+    try {
+      if (!terminal || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      if (sessionStorage.getItem('hero-typed')) return;
+      sessionStorage.setItem('hero-typed', '1');
+      terminal.classList.add('is-typing');
+    } catch {
+      // Storage blocked: show the final state.
+    }
+  })();
+</script>
+
+<style>
+  .hero {
+    padding-block: clamp(2.5rem, 1.5rem + 4vw, 5rem) clamp(2.5rem, 1.5rem + 3vw, 4rem);
+  }
+
+  .terminal {
+    position: relative;
+    max-width: 56rem;
+    border: 1px solid var(--color-line);
+    border-radius: 4px;
+    background-color: var(--color-surface);
+    box-shadow: 0 40px 90px -50px color-mix(in oklab, var(--color-accent) 35%, transparent);
+    font-family: var(--font-mono);
+    overflow: hidden;
+  }
+
+  /* Faint scanlines over the screen. */
+  .terminal::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0 2px,
+      color-mix(in oklab, var(--color-fg) 3%, transparent) 2px 3px
+    );
+  }
+
+  .bar {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.625rem 1rem;
+    border-bottom: 1px solid var(--color-line);
+    background-color: var(--color-surface-2);
+    color: var(--color-muted);
+    font-size: 0.75rem;
+  }
+
+  .screen {
+    padding: clamp(1.25rem, 0.75rem + 2vw, 2.25rem);
+    font-size: clamp(0.875rem, 0.82rem + 0.25vw, 1rem);
+    line-height: 1.6;
+  }
+
+  .line {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75ch;
+  }
+
+  .ps1 {
+    color: var(--color-accent);
+  }
+
+  .cmd {
+    display: inline-block;
+    white-space: nowrap;
+  }
+
+  .name {
+    margin-top: 1rem;
+    font-size: clamp(2rem, 1.1rem + 4.2vw, 3.75rem);
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+  }
+
+  .intro {
+    margin-top: 1rem;
+    max-width: 58ch;
+    font-family: var(--font-serif);
+    font-size: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem);
+    line-height: 1.6;
+    color: var(--color-muted);
+  }
+
+  .facts {
+    display: grid;
+    gap: 0.375rem;
+    margin-block: 1.5rem 1.25rem;
+  }
+
+  .facts div {
+    display: grid;
+    grid-template-columns: 7ch 1fr;
+    gap: 1ch;
+  }
+
+  dt {
+    color: var(--color-muted);
+  }
+
+  dt::after {
+    content: ':';
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 2ch;
+  }
+
+  /* The typing session (first visit only; see the script above). */
+  .is-typing .cmd {
+    width: 0;
+    overflow: hidden;
+    vertical-align: bottom;
+    animation: type calc(var(--n) * 75ms) steps(var(--n), end) var(--d) forwards;
+  }
+
+  .is-typing .out {
+    opacity: 0;
+    animation: appear 120ms ease-out var(--d) forwards;
+  }
+
+  .is-typing .caret {
+    animation-delay: 1950ms;
+  }
+
+  @keyframes type {
+    to {
+      width: calc(var(--n) * 1ch);
+    }
+  }
+
+  @keyframes appear {
+    to {
+      opacity: 1;
+    }
+  }
+</style>

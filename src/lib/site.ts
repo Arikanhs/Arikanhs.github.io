@@ -11,6 +11,9 @@ export const SITE = {
   github: 'Arikanhs',
   githubUrl: 'https://github.com/Arikanhs',
   linkedinUrl: 'https://www.linkedin.com/in/hasan-serdar-arikan-698740198/',
+  /** Terminal hero lines (from the resume). */
+  focus: ['machine learning', 'AI', 'security'],
+  status: "M.S. at UNLV, 2026–2028 · NSF CyberCorps scholar",
 } as const;
 
 export const NAV = [

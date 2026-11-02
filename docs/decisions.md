@@ -146,3 +146,14 @@ Each entry says what was chosen and why.
   invalid references.
 - **No Tailwind typography plugin:** a small `.prose` block in global.css matches the
   design tokens exactly and avoids a dependency.
+
+## Stage 7
+
+- **CSS-only typing.** The text is never inserted by JavaScript; the command is revealed by
+  animating its width in `ch` steps and output lines fade in on a schedule. Screen readers
+  and crawlers get the full text at once; no-JS and reduced motion get the final state.
+- **Commands type, output appears**, as in a real shell; only `whoami` is typed, which keeps
+  the whole sequence around two seconds.
+- **Once per visit** = sessionStorage flag set by an inline script in the hero, which also
+  runs before first paint so nothing flashes.
+- **Name is the h1**, shown as the output of `whoami`.

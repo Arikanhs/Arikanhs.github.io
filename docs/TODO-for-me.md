@@ -44,3 +44,6 @@ Search for "Placeholder" in src/content/ to find every spot.
       src/components/ascii/AsciiImage.astro (`characters`, `cellSize`, `normalize`).
 - [ ] The WebGL tests (tests/e2e/ascii.spec.ts) use your installed Google Chrome, because
       Playwright's own headless Chromium has only software WebGL.
+
+## Home hero (Stage 7)
+- [ ] Check the hero's "focus" and "status" lines (src/lib/site.ts, `focus` and `status`).

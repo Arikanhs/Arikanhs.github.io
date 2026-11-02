@@ -13,7 +13,7 @@ Autonomous build run started 2026-11-01. Instructions: docs/run-instructions.md
    number from private/ at runtime; never write the number into any file).
 
 ## Current status
-- Stage 6 committed. Next: Stage 7 (Terminal hero).
+- Stage 7 committed. Next: Stage 8 (Resume).
 
 ## Setup (2026-11-01)
 - Keep-awake: `caffeinate -dims` started in the background, **PID 9205** (restarted after
@@ -183,3 +183,20 @@ Autonomous build run started 2026-11-01. Instructions: docs/run-instructions.md
   project page at 375/1280 and after a card click reviewed.
 - Note: Astro's ClientRouter logs a console warning under reduced motion (animations off);
   tests treat that one message as expected.
+
+## Stage 7: Terminal hero (done)
+- Built: src/components/ui/TerminalHero.astro on the home page: a terminal window (title
+  bar, faint scanlines, amber glow) with `~ $ whoami`, the name (h1) and intro as output,
+  then focus / status / links (GitHub, email, cv) as a definition list, and a final
+  prompt with the amber cursor. All text is plain HTML. An inline script adds
+  `.is-typing` before first paint only on the first visit of a session with motion
+  allowed; CSS then types the command (steps() over `ch` widths) and reveals output on a
+  schedule (~2 s). SITE gained `focus` and `status` (from the resume).
+- Also: runtime.ts now treats software WebGL renderers (SwiftShader, llvmpipe) as
+  unavailable; the headless shell had slipped past failIfMajorPerformanceCaveat.
+- Tests: tests/e2e/hero.spec.ts (text in served HTML; types once per session; reduced
+  motion shows final state; no-JS at 375px complete and fitting; link targets).
+- Checks: build OK; astro check 0/0/0; `npm test` 69 passed; screenshots at 1280, 375,
+  375 without JS and mid-typing reviewed.
+- Carry forward to Stage 8: the hero's "cv" link points to /resume/; switch it to
+  /cv.pdf once that file exists.

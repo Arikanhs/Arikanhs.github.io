@@ -61,11 +61,17 @@ const controllers = new Map<HTMLElement, AsciiController>();
 const waiting = new Set<AsciiController>();
 
 let webgl2: boolean | undefined;
-/** WebGL2 on real hardware; software-only WebGL counts as unavailable. */
+/**
+ * WebGL2 on real hardware. Software renderers count as unavailable: they are
+ * slower than the static fallback. Browsers flag most of them through
+ * failIfMajorPerformanceCaveat; the renderer name catches the rest.
+ */
 function hasWebGL2() {
   if (webgl2 === undefined) {
     const gl = document.createElement('canvas').getContext('webgl2', { failIfMajorPerformanceCaveat: true });
-    webgl2 = !!gl;
+    const info = gl?.getExtension('WEBGL_debug_renderer_info');
+    const renderer = gl && info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL)) : '';
+    webgl2 = !!gl && !/swiftshader|llvmpipe|software/i.test(renderer);
     gl?.getExtension('WEBGL_lose_context')?.loseContext();
   }
   return webgl2;
