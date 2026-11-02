@@ -45,3 +45,21 @@ Each entry says what was chosen and why.
 - **frontend-design skill unavailable.** CLAUDE.md asks for it, but it is not
   installed in this environment. UI work follows its principles instead: a committed
   aesthetic direction, distinctive type, one accent, purposeful motion.
+
+## Stage 1
+
+- **Direction "phosphor notebook".** Interface text (nav, headings, labels) is monospace;
+  reading text is a serif. The serif suggests papers, the mono suggests the terminal.
+- **Accent amber `#ffb000`** rather than the usual terminal green: warmer, more distinctive,
+  10.7:1 on the background. Tailwind's default colors are removed (`--color-*: initial`) so
+  a second hue cannot creep in.
+- **Fonts: IBM Plex Mono + Source Serif 4**, self-hosted by Astro's Fonts API (no font
+  packages, no third-party requests at runtime, metric-matched fallbacks). Mono has no
+  italic (not needed for UI); the serif is one variable file per style.
+- **Signature: the phosphor cursor.** It blinks 4 times (4.4 s) then stays solid, which
+  keeps it under WCAG 2.2.2's 5-second limit without a pause control.
+- **Mobile nav is a disclosure, not a modal.** WAI's recommended pattern for site
+  navigation; no focus trap is needed. One `<nav>` serves both layouts, so links are never
+  duplicated in the tab order. Without JS the list wraps under the wordmark.
+- **Footer links are text, not icons.** "GitHub github.com/Arikanhs" reads well to
+  everyone and fits the terminal look; `rel="me"` on the profile links.

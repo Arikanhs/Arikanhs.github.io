@@ -1,7 +1,10 @@
 ---
+import PageHeader from '../../components/ui/PageHeader.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 ---
 
-<BaseLayout title="Blog | Hasan Serdar Arikan">
-  <h1>Blog</h1>
+<BaseLayout title="Blog">
+  <div class="container-page">
+    <PageHeader title="Blog" lede="Notes on machine learning, security and the systems underneath them." />
+  </div>
 </BaseLayout>

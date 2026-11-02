@@ -1,7 +1,11 @@
 ---
+import PageHeader from '../components/ui/PageHeader.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../lib/site';
 ---
 
-<BaseLayout title="Hasan Serdar Arikan">
-  <h1>Hasan Serdar Arikan</h1>
+<BaseLayout>
+  <div class="container-page">
+    <PageHeader title={SITE.name} lede={SITE.intro} path="~" />
+  </div>
 </BaseLayout>

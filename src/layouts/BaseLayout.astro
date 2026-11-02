@@ -1,12 +1,18 @@
 ---
+import { Font } from 'astro:assets';
+import SiteFooter from '../components/layout/SiteFooter.astro';
+import SiteHeader from '../components/layout/SiteHeader.astro';
+import { SITE } from '../lib/site';
 import '../styles/global.css';
 
 interface Props {
-  title: string;
+  /** Page title; the site name is appended. Omit it on the home page. */
+  title?: string;
   description?: string;
 }
 
-const { title, description = 'Personal website of Hasan Serdar Arikan.' } = Astro.props;
+const { title, description = SITE.description } = Astro.props;
+const fullTitle = title ? `${title} | ${SITE.name}` : SITE.name;
 ---
 
 <!doctype html>
@@ -14,15 +20,31 @@ const { title, description = 'Personal website of Hasan Serdar Arikan.' } = Astr
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script is:inline>
+      document.documentElement.classList.add('js');
+    </script>
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0d0c0b" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
+    <Font
+      cssVariable="--font-plex-mono"
+      preload={[
+        { subset: 'latin', style: 'normal', weight: '400' },
+        { subset: 'latin', style: 'normal', weight: '600' },
+      ]}
+    />
+    <Font cssVariable="--font-source-serif" preload={[{ subset: 'latin', style: 'normal' }]} />
     <meta name="generator" content={Astro.generator} />
-    <meta name="description" content={description} />
-    <title>{title}</title>
   </head>
   <body>
-    <main id="main">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <SiteHeader />
+    <main id="main" tabindex="-1" class="flex-1">
       <slot />
     </main>
+    <SiteFooter />
   </body>
 </html>

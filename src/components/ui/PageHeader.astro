@@ -1,0 +1,48 @@
+---
+// Page title styled as a shell prompt: a dim "~/path" line, the h1 and the
+// phosphor cursor. The path and cursor are decorative and hidden from AT.
+interface Props {
+  title: string;
+  lede?: string;
+  /** Defaults to "~" plus the current URL path. */
+  path?: string;
+}
+
+const { title, lede } = Astro.props;
+const path = Astro.props.path ?? `~${Astro.url.pathname.replace(/\/$/, '')}`;
+---
+
+<header class="page-header">
+  <p class="path" aria-hidden="true">{path}</p>
+  <h1 class="title">{title}<span class="caret" aria-hidden="true"></span></h1>
+  {lede && <p class="lede">{lede}</p>}
+  <slot />
+</header>
+
+<style>
+  .page-header {
+    padding-block: clamp(3rem, 2rem + 4vw, 5.5rem) clamp(2rem, 1.5rem + 2vw, 3rem);
+  }
+
+  .path {
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    color: var(--color-faint);
+  }
+
+  .title {
+    margin-top: 0.75rem;
+    font-size: var(--text-display);
+    line-height: var(--text-display--line-height);
+    letter-spacing: var(--text-display--letter-spacing);
+    font-weight: 600;
+  }
+
+  .lede {
+    margin-top: 1.25rem;
+    max-width: 60ch;
+    font-size: 1.1875rem;
+    line-height: 1.6;
+    color: var(--color-muted);
+  }
+</style>

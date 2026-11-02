@@ -19,6 +19,12 @@
 
 ## Design direction
 - Dark terminal aesthetic, monospace accents, one accent color.
+- Palette (tokens in src/styles/global.css): bg #0d0c0b, surface #151311, surface-2 #1d1a17,
+  line #2c2824, fg #ece6dc, muted #a39a8e, faint #8a8176. The one accent is amber #ffb000
+  (hover #ffc94a, text on amber #1a1100). No other hues.
+- Fonts (self-hosted with Astro's Fonts API): IBM Plex Mono for interface and headings,
+  Source Serif 4 for reading text.
+- Signature detail: the amber block cursor after page titles, also marking the current nav item.
 - Motion is purposeful, and everything respects prefers-reduced-motion.
 - Use the frontend-design skill for all UI work.
 

@@ -13,7 +13,7 @@ Autonomous build run started 2026-11-01. Instructions: docs/run-instructions.md
    number from private/ at runtime; never write the number into any file).
 
 ## Current status
-- Stage 0 committed. Next: Stage 1 (Design direction and layout).
+- Stage 1 committed. Next: Stage 2 (Deploy early).
 
 ## Setup (2026-11-01)
 - Keep-awake: `caffeinate -dims` started in the background, **PID 9205**.
@@ -48,3 +48,25 @@ Autonomous build run started 2026-11-01. Instructions: docs/run-instructions.md
   made Playwright's webServer exit early and left orphaned servers; fixed with
   `--ignore-lock`. Self-test sample/pattern misalignment in check-private fixed.
 - Dev server: `npm run dev` (then open http://localhost:4321).
+
+## Stage 1: Design direction and layout (done)
+- Plan: docs/plans/stage-1.md (written, critiqued against the spec, improved, then built).
+- Built: design tokens in src/styles/global.css (`@theme`, default palette removed so only
+  the "phosphor notebook" tokens exist); IBM Plex Mono + Source Serif 4 via Astro's Fonts
+  API (3 preloaded files); src/lib/site.ts (details + nav); SiteHeader (sticky, wordmark,
+  one `<nav>` with aria-current, mobile disclosure menu: Esc, focus-out, link click and
+  breakpoint change close it; no-JS fallback wraps the links); SiteFooter (terminal-style
+  contact block: GitHub, LinkedIn, email); PageHeader (`~/path` eyebrow, h1, blinking
+  amber cursor that settles in under 5 s); skip link; layout applied to all five pages.
+  CLAUDE.md "Design direction" now lists palette, fonts and the signature cursor.
+- Tests added: tests/e2e/nav.spec.ts (desktop nav + aria-current, Tab reaches every link
+  at 1280px and at 375px with the menu open, skip link first and focuses main, footer
+  links match "My details", mobile menu by mouse/Escape/keyboard only, no-JS fallback);
+  tests/e2e/utils/keyboard.ts (reusable tab-through helper).
+- Checks: build OK; astro check 0/0/0; `npm test` 24 passed; screenshots at 375/1280 of
+  all five pages plus menu-open, no-JS, keyboard focus and skip-link states reviewed.
+  Contrast computed for every text token on every surface (lowest: faint on surface-2,
+  4.52:1).
+- Review fixes: footer label column too narrow for "LinkedIn" (9ch -> 10ch).
+- Carry forward to Stage 6: the `js` class on <html> is set by an inline head script;
+  client-side navigation must keep it, and initNav() must run on astro:page-load.
