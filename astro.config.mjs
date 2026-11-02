@@ -2,9 +2,12 @@
 import { defineConfig, fontProviders } from 'astro/config';
 
 import tailwindcss from '@tailwindcss/vite';
+import { SITE } from './src/lib/site.ts';
 
 // https://astro.build/config
 export default defineConfig({
+  // GitHub Pages user site (repo named <username>.github.io), so no `base` is needed.
+  site: SITE.url,
   fonts: [
     {
       provider: fontProviders.fontsource(),

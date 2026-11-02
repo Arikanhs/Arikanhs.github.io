@@ -16,7 +16,7 @@ Fill these in once; stages refer to them.
 ## Progress
 - [x] Stage 0: Scaffold
 - [x] Stage 1: Design direction and layout
-- [ ] Stage 2: Deploy early
+- [x] Stage 2: Deploy early
 - [ ] Stage 3: Content model
 - [ ] Stage 4: ASCII lab
 - [ ] Stage 5: Projects section with ASCII cards

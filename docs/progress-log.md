@@ -13,7 +13,7 @@ Autonomous build run started 2026-11-01. Instructions: docs/run-instructions.md
    number from private/ at runtime; never write the number into any file).
 
 ## Current status
-- Stage 1 committed. Next: Stage 2 (Deploy early).
+- Stage 2 committed. Next: Stage 3 (Content model).
 
 ## Setup (2026-11-01)
 - Keep-awake: `caffeinate -dims` started in the background, **PID 9205**.
@@ -70,3 +70,19 @@ Autonomous build run started 2026-11-01. Instructions: docs/run-instructions.md
 - Review fixes: footer label column too narrow for "LinkedIn" (9ch -> 10ch).
 - Carry forward to Stage 6: the `js` class on <html> is set by an inline head script;
   client-side navigation must keep it, and initNav() must run on astro:page-load.
+
+## Stage 2: Deploy early (done; push and live check are for the owner)
+- Built: .github/workflows/deploy.yml from the current Astro guide: push to `main` +
+  `workflow_dispatch`, `actions/checkout@v7`, `withastro/action@v6` (Node 24, npm from the
+  lockfile), `actions/deploy-pages@v5`, Pages permissions, `pages` concurrency group.
+  astro.config.mjs: `site: SITE.url` (https://arikanhs.github.io), imported from
+  src/lib/site.ts so the URL lives in one place; no `base` (user-site repo).
+- Not pushed and no GitHub settings changed (per run instructions). The exact Pages
+  setting and repo name are in docs/TODO-for-me.md.
+- Tests added: tests/e2e/deploy.spec.ts (site URL derives from the username, no base;
+  workflow triggers, actions and permissions).
+- Checks: build OK; astro check 0/0/0; `npm test` 26 passed; workflow YAML parsed with
+  Ruby's YAML loader (jobs build/deploy, triggers, permissions). No pages changed, so no
+  new screenshots.
+- Done-when ("a push to main publishes the site") needs the owner's GitHub account;
+  listed in docs/TODO-for-me.md.

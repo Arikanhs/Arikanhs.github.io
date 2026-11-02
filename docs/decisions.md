@@ -63,3 +63,14 @@ Each entry says what was chosen and why.
   duplicated in the tab order. Without JS the list wraps under the wordmark.
 - **Footer links are text, not icons.** "GitHub github.com/Arikanhs" reads well to
   everyone and fits the terminal look; `rel="me"` on the profile links.
+
+## Stage 2
+
+- **Action versions** pinned to the current majors the Astro docs use and that exist as
+  tags: `actions/checkout@v7`, `withastro/action@v6`, `actions/deploy-pages@v5`.
+- **Concurrency group `pages`** (not in the Astro sample) so two quick pushes cannot
+  deploy at the same time; a running deployment is allowed to finish.
+- **No test job in the deploy workflow.** The roadmap asks only for deployment, and the
+  Playwright suite needs browsers in CI. Tests run locally (`npm test`) before every commit.
+- **User-site repo `Arikanhs.github.io`** so `site` is the bare github.io URL and every
+  internal link can stay root-relative.
