@@ -18,7 +18,7 @@ const { projects, label, headingLevel, morph } = Astro.props;
 <ul class="project-grid" aria-label={label}>
   {
     projects.map((project) => (
-      <li class:list={{ 'is-featured': project.data.featured }}>
+      <li class:list={{ 'is-featured': project.data.featured }} data-reveal>
         <ProjectCard project={project} headingLevel={headingLevel} morph={morph} />
       </li>
     ))

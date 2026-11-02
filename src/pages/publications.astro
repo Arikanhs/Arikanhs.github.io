@@ -58,7 +58,7 @@ const isOwner = (author: string) => {
               .map((publication) => {
                 const { title, authors, venue, url, pdf, repo, projectSlug, tags: entryTags, bibtex } = publication.data;
                 return (
-                  <li id={publication.id} class="entry" data-tags={entryTags.join('|')}>
+                  <li id={publication.id} class="entry" data-tags={entryTags.join('|')} data-reveal>
                     <article aria-labelledby={`${publication.id}-title`}>
                       <h3 id={`${publication.id}-title`} class="title">
                         {url ? (

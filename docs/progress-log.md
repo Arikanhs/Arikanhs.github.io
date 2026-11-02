@@ -13,7 +13,7 @@ Autonomous build run started 2026-11-01. Instructions: docs/run-instructions.md
    number from private/ at runtime; never write the number into any file).
 
 ## Current status
-- Stage 10 committed. Next: Stage 11 (Command palette and motion polish).
+- Stage 11 committed. Next: Stage 12 (Launch polish).
 
 ## Setup (2026-11-01)
 - Keep-awake: `caffeinate -dims` started in the background, **PID 9205** (restarted after
@@ -252,3 +252,24 @@ Autonomous build run started 2026-11-01. Instructions: docs/run-instructions.md
 - Checks: build OK (14 pages); astro check 0/0/0; `npm test` 107 passed; screenshots of a
   post at 1280/375 and of /blog reviewed.
 - Fixed: schema tests raced on a shared Vite cache when run in parallel (now in order).
+
+## Stage 11: Command palette and motion polish (done)
+- Built: src/components/ui/CommandPalette.astro on every page: modal <dialog>
+  (showModal makes the page inert) + ARIA combobox (input keeps focus,
+  aria-activedescendant over a role=listbox), Ctrl+K / Cmd+K toggle, header "search"
+  button (shows Ctrl K or ⌘K; hidden without JS), arrows wrap, Enter navigates with
+  astro:transitions' navigate(), Esc/backdrop/close button close it, Tab is trapped
+  between the input and the close button, result count announced. Index of pages,
+  projects, publications and posts built at build time (inline JSON). src/lib/fuzzy.ts:
+  ordered-subsequence matcher with run and word-start bonuses (no dependency).
+  Scroll reveal: [data-reveal] on project cards, post rows, publication entries, timeline
+  items and the home section head; IntersectionObserver adds .is-revealed; the hidden
+  state applies only with JS, on screen media and with motion allowed.
+- Tests: tests/e2e/palette.spec.ts (open/close by keys and button, focus return; every
+  project reached with the keyboard alone = Done-when; arrows/wrap/aria state; focus
+  trapped; fuzzy ranking and empty state; reveal on scroll; reduced motion and no-JS
+  show everything; axe on the open palette).
+- Checks: build OK; astro check 0/0/0; `npm test` 115 passed; screenshots of the palette
+  at 1280/375 and the headers reviewed.
+- Review fixes: mobile header wrapped with the new button (tighter gap below 768px);
+  axe now audits the settled page (reduced motion) instead of mid-fade content.

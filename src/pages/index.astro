@@ -14,7 +14,7 @@ const featured = (await getProjects()).filter((project) => project.data.featured
     {
       featured.length > 0 && (
         <section class="selected" aria-labelledby="selected-work">
-          <div class="section-head">
+          <div class="section-head" data-reveal>
             <h2 id="selected-work" class="section-title">
               <span class="prompt" aria-hidden="true">
                 ##

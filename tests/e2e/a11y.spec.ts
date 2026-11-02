@@ -8,6 +8,9 @@ for (const width of [375, 1280]) {
   for (const route of builtPages()) {
     test(`axe ${route} @${width}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
+      // Audit the settled page: with reduced motion nothing is mid-fade (scroll
+      // reveals, the hero's typing), which would otherwise skew contrast checks.
+      await page.emulateMedia({ reducedMotion: 'reduce' });
       await page.goto(route, { waitUntil: 'load' });
       const { violations } = await new AxeBuilder({ page }).withTags(TAGS).analyze();
       const summary = violations.map(

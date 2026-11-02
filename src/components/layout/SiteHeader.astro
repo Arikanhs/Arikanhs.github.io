@@ -15,6 +15,9 @@ function current(href: string) {
 <header class="site-header">
   <div class="container-page bar">
     <a href="/" class="wordmark"><span class="prompt" aria-hidden="true">&gt;_</span>hasan arikan</a>
+    <button type="button" class="palette-button" data-palette-open aria-keyshortcuts="Control+K Meta+K" hidden>
+      search <kbd data-shortcut>Ctrl K</kbd>
+    </button>
     <nav class="site-nav" aria-label="Main">
       <button type="button" class="nav-toggle" aria-expanded="false" aria-controls="nav-links" hidden>
         <span class="toggle-icon" aria-hidden="true"></span>
@@ -45,6 +48,9 @@ function current(href: string) {
     if (!toggle || !list || !nav || toggle.dataset.ready) return;
     toggle.dataset.ready = '';
     toggle.hidden = false;
+    if (/Mac|iPhone|iPad/.test(navigator.platform)) {
+      for (const kbd of document.querySelectorAll('[data-shortcut]')) kbd.textContent = '⌘K';
+    }
 
     const controller = new AbortController();
     const { signal } = controller;
@@ -104,7 +110,7 @@ function current(href: string) {
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    column-gap: 1.5rem;
+    column-gap: 0.625rem;
     min-height: var(--header-h);
     padding-block: 0.375rem;
   }
@@ -124,6 +130,41 @@ function current(href: string) {
 
   .prompt {
     color: var(--color-accent);
+  }
+
+  .palette-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    margin-left: auto;
+    padding-inline: 0.75rem;
+    border: 1px solid var(--color-line);
+    border-radius: 2px;
+    background-color: transparent;
+    color: var(--color-muted);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    cursor: pointer;
+  }
+
+  .palette-button:hover {
+    border-color: var(--color-accent);
+    color: var(--color-fg);
+  }
+
+  .palette-button kbd {
+    padding: 0 0.3rem;
+    border: 1px solid var(--color-line);
+    border-radius: 2px;
+    font: inherit;
+    font-size: 0.75rem;
+  }
+
+  @media (max-width: 47.99rem) {
+    .palette-button kbd {
+      display: none;
+    }
   }
 
   .nav-links {
@@ -227,6 +268,10 @@ function current(href: string) {
   }
 
   @media (min-width: 48rem) {
+    .bar {
+      column-gap: 1.5rem;
+    }
+
     .nav-toggle {
       display: none;
     }

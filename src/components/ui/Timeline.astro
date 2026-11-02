@@ -22,7 +22,7 @@ const { items } = Astro.props;
 <ol class="timeline">
   {
     items.map((item) => (
-      <li class="item">
+      <li class="item" data-reveal>
         <p class="when">
           {item.label ?? (
             <>

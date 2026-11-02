@@ -25,7 +25,7 @@ Fill these in once; stages refer to them.
 - [x] Stage 8: Resume
 - [x] Stage 9: Publications
 - [x] Stage 10: Blog
-- [ ] Stage 11: Command palette and motion polish
+- [x] Stage 11: Command palette and motion polish
 - [ ] Stage 12: Launch polish
 
 ---

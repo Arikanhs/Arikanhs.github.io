@@ -14,7 +14,7 @@ const { posts } = Astro.props;
 <ol class="posts" aria-label="Posts">
   {
     posts.map((post) => (
-      <li class="post">
+      <li class="post" data-reveal>
         <article>
           <p class="meta">
             <time datetime={post.data.date.toISOString().slice(0, 10)}>{formatDate(post.data.date)}</time>

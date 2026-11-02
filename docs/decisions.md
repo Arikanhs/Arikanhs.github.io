@@ -194,3 +194,15 @@ Each entry says what was chosen and why.
 - **Reading time** counts every word at 200 per minute, including code (slower to read).
 - **A draft sample post** shows that drafts work: visible in `npm run dev`, absent from the
   build and the feed.
+
+## Stage 11
+
+- **No dependency for the palette.** Native <dialog> gives the modal/inert behaviour; the
+  fuzzy matcher is 20 lines. The index (12 items today) is inline JSON on each page.
+- **Combobox pattern** (focus stays in the input, options via aria-activedescendant) so
+  screen readers hear the active result while typing; Tab is kept between the input and
+  the close button so focus never leaves the open palette.
+- **Navigation through `navigate()`** keeps view transitions for palette jumps.
+- **Reveal is progressive**: the hidden start state needs `.js`, screen media and
+  `prefers-reduced-motion: no-preference`, so no-JS, print and reduced-motion users never
+  see hidden content.
