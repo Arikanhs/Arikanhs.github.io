@@ -53,3 +53,9 @@ Search for "Placeholder" in src/content/ to find every spot.
       plus tools named in your experience bullets), and whether you want "U.S. citizen" and
       the GPA public. Then run `npm run cv` to regenerate public/cv.pdf and commit it.
 - [ ] Print /resume from your browser once (A4 or Letter) to confirm you like the layout.
+
+## Launch (Stage 12)
+- [ ] Run Lighthouse once in your own Chrome DevTools on the live site (home and
+      /projects/); the automated run here scored 98/100/100/100 on both.
+- [ ] Look at public/og.png (the social preview) and the favicon; regenerate with
+      `npm run assets` if you change your name or intro.

@@ -13,7 +13,7 @@ Autonomous build run started 2026-11-01. Instructions: docs/run-instructions.md
    number from private/ at runtime; never write the number into any file).
 
 ## Current status
-- Stage 12 committed. Next: final whole-site review, README, final report.
+- All stages done; final review, README and report done. Run finished 2026-11-01.
 
 ## Setup (2026-11-01)
 - Keep-awake: `caffeinate -dims` started in the background, **PID 9205** (restarted after
@@ -301,3 +301,19 @@ Autonomous build run started 2026-11-01. Instructions: docs/run-instructions.md
   content, axe on 404).
 - Checks: build OK (15 pages); astro check 0/0/0; `npm test` 121 passed; screenshots of
   the lab (static and live after the renderer rewrite) and 404 reviewed.
+
+## Final whole-site review (done)
+- Links: every internal link and asset is checked on each test run; all external links
+  checked by HTTP: everything resolves except github.com/Arikanhs/Image2ASCII (404, the
+  repo is not public yet; in TODO) and LinkedIn (answers 999 to all automated requests).
+- Consistency and mobile: full-page screenshots of all 14 pages at 375px and 1280px
+  reviewed: same header, page-title pattern, cards, footer and spacing; no overflow
+  (also asserted by the smoke tests on every page).
+- Keyboard: Tab order, skip link, mobile menu, palette (every project reachable by
+  keyboard) and focus containment are covered by tests. Reduced motion: hero, reveals,
+  ASCII effects and view transitions all have reduced-motion tests.
+- Lighthouse (mobile): home 98/100/100/100, projects 98/100/100/100.
+- README.md written (run, add content, deploy, privacy, layout).
+- Final checks: build OK (15 pages), astro check 0/0/0, `npm test` 121 passed,
+  npm audit 0 vulnerabilities, privacy check clean.
+- Keep-awake (caffeinate) stopped at the end of the run.
