@@ -170,3 +170,12 @@ Each entry says what was chosen and why.
 - **Letter for cv.pdf** (US-based owner); the print stylesheet is tested on A4 too.
 - **Skill groups** were reorganized from the resume's single list plus tools named in the
   experience bullets (Keras, Slurm, Kokkos, OpenMP, React, NestJS...); review them.
+
+## Stage 9
+
+- **Owner match on first and last name** so the citation form "Hasan Arikan" and the full
+  name both get bold, without a per-entry flag.
+- **BibTeX in a native `<details>`** as the no-JS fallback, with the copy button added by
+  script; the toast doubles as the screen-reader announcement (role="status").
+- **Filter chips are buttons with aria-pressed** in a labelled group; empty year sections
+  hide too.

@@ -23,7 +23,7 @@ Fill these in once; stages refer to them.
 - [x] Stage 6: Project pages and view transitions
 - [x] Stage 7: Terminal hero
 - [x] Stage 8: Resume
-- [ ] Stage 9: Publications
+- [x] Stage 9: Publications
 - [ ] Stage 10: Blog
 - [ ] Stage 11: Command palette and motion polish
 - [ ] Stage 12: Launch polish

@@ -1,10 +1,342 @@
 ---
 import PageHeader from '../components/ui/PageHeader.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { getPublications } from '../lib/content';
+import { SITE } from '../lib/site';
+
+const publications = await getPublications();
+const years = [...new Set(publications.map((p) => p.data.year))].sort((a, b) => b - a);
+const tags = [...new Set(publications.flatMap((p) => p.data.tags))].sort((a, b) => a.localeCompare(b));
+
+// The owner is bold in author lists: match on first and last name, so
+// "Hasan Arikan" and "Hasan Serdar Arikan" both count.
+const nameParts = SITE.name.toLowerCase().split(/\s+/);
+const first = nameParts[0] ?? '';
+const last = nameParts[nameParts.length - 1] ?? '';
+const isOwner = (author: string) => {
+  const words = author.toLowerCase().split(/[\s,.]+/);
+  return words.includes(first) && words.includes(last);
+};
 ---
 
-<BaseLayout title="Publications">
+<BaseLayout title="Publications" description={`Peer-reviewed publications by ${SITE.name}, with code and BibTeX.`}>
   <div class="container-page">
-    <PageHeader title="Publications" lede="Peer-reviewed papers, with links to the paper, the code and the project behind it." />
+    <PageHeader
+      title="Publications"
+      lede="Peer-reviewed papers, with links to the paper, the code and the project behind it."
+    />
+
+    {
+      tags.length > 1 && (
+        <div class="filters" data-filters hidden>
+          <p id="filter-label" class="filter-label">
+            Filter by tag
+          </p>
+          <div class="chips" role="group" aria-labelledby="filter-label">
+            <button type="button" class="chip" data-tag="" aria-pressed="true">
+              all
+            </button>
+            {tags.map((tag) => (
+              <button type="button" class="chip" data-tag={tag} aria-pressed="false">
+                {tag}
+              </button>
+            ))}
+          </div>
+        </div>
+      )
+    }
+
+    {
+      years.map((year) => (
+        <section class="year" aria-labelledby={`year-${year}`} data-year>
+          <h2 id={`year-${year}`} class="year-title">
+            {year}
+          </h2>
+          <ol class="entries">
+            {publications
+              .filter((p) => p.data.year === year)
+              .map((publication) => {
+                const { title, authors, venue, url, pdf, repo, projectSlug, tags: entryTags, bibtex } = publication.data;
+                return (
+                  <li id={publication.id} class="entry" data-tags={entryTags.join('|')}>
+                    <article aria-labelledby={`${publication.id}-title`}>
+                      <h3 id={`${publication.id}-title`} class="title">
+                        {url ? (
+                          <a class="link" href={url}>
+                            {title}
+                          </a>
+                        ) : (
+                          title
+                        )}
+                      </h3>
+                      <p class="authors">
+                        {authors.map((author, i) => (
+                          <>
+                            {i > 0 && ', '}
+                            {isOwner(author) ? <strong>{author}</strong> : author}
+                          </>
+                        ))}
+                      </p>
+                      <p class="venue">
+                        <em>{venue}</em>, {year}
+                      </p>
+                      <div class="actions">
+                        {pdf && (
+                          <a class="button" href={pdf}>
+                            PDF
+                          </a>
+                        )}
+                        <a class="button" href={repo} aria-label={`Code for “${title}” on GitHub`}>
+                          Code<span aria-hidden="true">↗</span>
+                        </a>
+                        {projectSlug && (
+                          <a class="button" href={`/projects/${projectSlug.id}/`} aria-label={`Project page for “${title}”`}>
+                            Project
+                          </a>
+                        )}
+                        <button type="button" class="button copy" data-copy hidden>
+                          Copy BibTeX
+                        </button>
+                      </div>
+                      <details class="bibtex">
+                        <summary>BibTeX</summary>
+                        <pre><code data-bibtex>{bibtex.trim()}</code></pre>
+                      </details>
+                    </article>
+                  </li>
+                );
+              })}
+          </ol>
+        </section>
+      ))
+    }
+
+    <div class="toast" role="status" aria-live="polite" data-toast></div>
   </div>
 </BaseLayout>
+
+<script>
+  function initPublications() {
+    const toast = document.querySelector<HTMLElement>('[data-toast]');
+    if (!toast || toast.dataset.ready) return;
+    toast.dataset.ready = '';
+    let hideTimer = 0;
+    const announce = (message: string) => {
+      toast.textContent = message;
+      toast.classList.add('is-visible');
+      clearTimeout(hideTimer);
+      hideTimer = window.setTimeout(() => toast.classList.remove('is-visible'), 2200);
+    };
+
+    // Copy BibTeX (shown only when scripting works).
+    for (const button of document.querySelectorAll<HTMLButtonElement>('[data-copy]')) {
+      button.hidden = false;
+      button.addEventListener('click', async () => {
+        const text = button.closest('article')?.querySelector('[data-bibtex]')?.textContent ?? '';
+        try {
+          await navigator.clipboard.writeText(text);
+          announce('BibTeX copied to the clipboard');
+        } catch {
+          announce('Could not copy; open “BibTeX” below and copy it by hand');
+        }
+      });
+    }
+
+    // Tag filter chips.
+    const filters = document.querySelector<HTMLElement>('[data-filters]');
+    if (!filters) return;
+    filters.hidden = false;
+    const chips = [...filters.querySelectorAll<HTMLButtonElement>('.chip')];
+    const entries = [...document.querySelectorAll<HTMLElement>('.entry')];
+    filters.addEventListener('click', (event) => {
+      const chip = (event.target as Element).closest<HTMLButtonElement>('.chip');
+      if (!chip) return;
+      const tag = chip.dataset.tag ?? '';
+      for (const c of chips) c.setAttribute('aria-pressed', String(c === chip));
+      let shown = 0;
+      for (const entry of entries) {
+        const match = !tag || (entry.dataset.tags ?? '').split('|').includes(tag);
+        entry.hidden = !match;
+        if (match) shown += 1;
+      }
+      for (const section of document.querySelectorAll<HTMLElement>('[data-year]')) {
+        section.hidden = !section.querySelector('.entry:not([hidden])');
+      }
+      announce(`Showing ${shown} of ${entries.length} publications${tag ? ` tagged ${tag}` : ''}`);
+    });
+  }
+
+  document.addEventListener('astro:page-load', initPublications);
+</script>
+
+<style>
+  .filters {
+    margin-bottom: 2rem;
+  }
+
+  .filter-label {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--color-muted);
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.625rem;
+  }
+
+  .chip {
+    min-height: 2.25rem;
+    padding: 0.25rem 0.75rem;
+    border: 1px solid var(--color-line);
+    border-radius: 2px;
+    background-color: transparent;
+    color: var(--color-muted);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    cursor: pointer;
+  }
+
+  .chip:hover {
+    border-color: var(--color-faint);
+    color: var(--color-fg);
+  }
+
+  .chip[aria-pressed='true'] {
+    border-color: var(--color-accent);
+    background-color: var(--color-accent);
+    color: var(--color-accent-ink);
+  }
+
+  .year + .year {
+    margin-top: 3rem;
+  }
+
+  .year-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-muted);
+  }
+
+  .year-title::after {
+    content: '';
+    flex: 1;
+    border-top: 1px solid var(--color-line);
+  }
+
+  .entries {
+    display: grid;
+    gap: 1.25rem;
+    margin-top: 1.25rem;
+  }
+
+  /* Grid items default to min-width: auto; without this a long BibTeX line
+     would widen the whole page instead of scrolling inside its box. */
+  .entry,
+  .entry article {
+    min-width: 0;
+  }
+
+  .entry article {
+    padding: clamp(1.125rem, 0.8rem + 1.4vw, 1.5rem);
+    border: 1px solid var(--color-line);
+    border-left: 3px solid var(--color-accent);
+    background-color: var(--color-surface);
+  }
+
+  .entry[hidden] {
+    display: none;
+  }
+
+  .title {
+    font-family: var(--font-serif);
+    font-size: clamp(1.1875rem, 1.05rem + 0.6vw, 1.4375rem);
+    font-weight: 600;
+    line-height: 1.35;
+    letter-spacing: 0;
+  }
+
+  .authors {
+    margin-top: 0.625rem;
+    color: var(--color-muted);
+  }
+
+  .authors strong {
+    color: var(--color-fg);
+    font-weight: 700;
+  }
+
+  .venue {
+    margin-top: 0.25rem;
+    color: var(--color-muted);
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1.25rem;
+  }
+
+  .actions .button {
+    min-height: 2.5rem;
+    padding: 0.4rem 0.9rem;
+    font-size: 0.8125rem;
+  }
+
+  .copy {
+    cursor: pointer;
+  }
+
+  .bibtex {
+    margin-top: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+
+  .bibtex summary {
+    width: fit-content;
+    color: var(--color-muted);
+    cursor: pointer;
+  }
+
+  .bibtex pre {
+    margin-top: 0.75rem;
+    padding: 1rem;
+    overflow-x: auto;
+    border: 1px solid var(--color-line);
+    background-color: var(--color-bg);
+    line-height: 1.55;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    z-index: 60;
+    width: max-content;
+    max-width: calc(100vw - 2rem);
+    padding: 0.75rem 1.125rem;
+    border: 1px solid var(--color-accent);
+    background-color: var(--color-surface-2);
+    color: var(--color-fg);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, 0.5rem);
+    transition:
+      opacity 200ms,
+      transform 200ms;
+  }
+
+  .toast.is-visible {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+</style>

@@ -13,7 +13,7 @@ Autonomous build run started 2026-11-01. Instructions: docs/run-instructions.md
    number from private/ at runtime; never write the number into any file).
 
 ## Current status
-- Stage 8 committed. Next: Stage 9 (Publications).
+- Stage 9 committed. Next: Stage 10 (Blog).
 
 ## Setup (2026-11-01)
 - Keep-awake: `caffeinate -dims` started in the background, **PID 9205** (restarted after
@@ -218,3 +218,17 @@ Autonomous build run started 2026-11-01. Instructions: docs/run-instructions.md
   (2 pages, clean); screenshots at 375/1280 reviewed; privacy check scanned the PDF text.
 - Review fixes: dark page frame in print (dark color-scheme canvas), print type too big
   (3 pages -> 2), cramped date column for "Spring 2023 – Fall 2023".
+
+## Stage 9: Publications (done)
+- Built: /publications grouped by year (newest first), each entry with title (links to
+  the paper), authors with the owner in bold (first + last name match), venue, buttons
+  PDF (when set), Code (repo) and Project (when projectSlug is set), Copy BibTeX
+  (clipboard + toast in a role="status" live region; graceful message if the clipboard
+  is blocked) and a `<details>` BibTeX block that works without JS. Tag filter chips
+  (aria-pressed, hidden without JS, count announced). Scripts init on astro:page-load.
+- Tests: tests/e2e/publications.spec.ts (year order and bold owner; Code/Project hrefs
+  match each file; Copy BibTeX gives exactly the source, parses, balanced braces, toast;
+  filters and reset; open BibTeX does not overflow at 375px; no-JS fallback).
+- Checks: build OK; astro check 0/0/0; `npm test` 80 passed; screenshots at 1280/375
+  reviewed (filtered, BibTeX open, toast).
+- Review fix: an open BibTeX block widened the page at 375px (grid item min-width).
