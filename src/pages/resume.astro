@@ -1,10 +1,328 @@
 ---
+import { getEntry } from 'astro:content';
 import PageHeader from '../components/ui/PageHeader.astro';
+import Timeline from '../components/ui/Timeline.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { getPublications } from '../lib/content';
+import { displayUrl } from '../lib/format';
+import { SITE } from '../lib/site';
+
+const entry = await getEntry('resume', 'resume');
+if (!entry) throw new Error('src/data/resume.yaml must contain a `resume:` entry');
+const resume = entry.data;
+const publications = await getPublications();
+
+const education = resume.education.map((item) => ({
+  title: item.degree,
+  org: item.school,
+  start: item.start,
+  end: item.end,
+  label: item.label,
+  points: item.details,
+}));
+const contacts = [
+  { label: SITE.email, href: `mailto:${SITE.email}` },
+  { label: displayUrl(SITE.githubUrl), href: SITE.githubUrl },
+  { label: 'linkedin.com/in/hasan-serdar-arikan', href: SITE.linkedinUrl },
+  { label: displayUrl(SITE.url), href: SITE.url },
+];
 ---
 
-<BaseLayout title="Resume">
-  <div class="container-page">
-    <PageHeader title="Resume" lede="Education, experience, skills and awards." />
+<BaseLayout title="Resume" description={`Resume of ${SITE.name}: education, experience, skills and awards.`}>
+  <div class="container-page resume">
+    <div class="screen-only">
+      <PageHeader title="Resume" lede={resume.summary}>
+        <div class="actions">
+          <a class="button button-primary" href="/cv.pdf" download="Hasan-Serdar-Arikan-CV.pdf">
+            Download PDF<span aria-hidden="true">↓</span>
+          </a>
+        </div>
+      </PageHeader>
+    </div>
+
+    <!-- Printed (and in cv.pdf) instead of the screen header. -->
+    <header class="print-only print-head">
+      <p class="print-name">{SITE.name}</p>
+      <p class="print-contact">
+        {contacts.map((contact) => <a href={contact.href}>{contact.label}</a>)}
+      </p>
+      <p class="print-summary">{resume.summary}</p>
+    </header>
+
+    <section aria-labelledby="education">
+      <h2 id="education" class="section-title"><span aria-hidden="true">## </span>Education</h2>
+      <Timeline items={education} />
+    </section>
+
+    <section aria-labelledby="experience">
+      <h2 id="experience" class="section-title"><span aria-hidden="true">## </span>Experience</h2>
+      <Timeline items={resume.experience} />
+    </section>
+
+    {
+      resume.involvement.length > 0 && (
+        <section aria-labelledby="involvement">
+          <h2 id="involvement" class="section-title">
+            <span aria-hidden="true">## </span>Projects and involvement
+          </h2>
+          <Timeline items={resume.involvement} />
+        </section>
+      )
+    }
+
+    <section aria-labelledby="publications">
+      <h2 id="publications" class="section-title"><span aria-hidden="true">## </span>Publications</h2>
+      <ol class="pubs">
+        {
+          publications.map((publication) => (
+            <li>
+              <span class="pub-authors">{publication.data.authors.join(', ')}</span> ({publication.data.year}).{' '}
+              {publication.data.url ? (
+                <a class="link" href={publication.data.url}>
+                  {publication.data.title}
+                </a>
+              ) : (
+                publication.data.title
+              )}
+              . <em>{publication.data.venue}</em>.
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+    <div class="columns">
+      <section aria-labelledby="skills">
+        <h2 id="skills" class="section-title"><span aria-hidden="true">## </span>Skills</h2>
+        <dl class="skills">
+          {
+            resume.skills.map((group) => (
+              <div>
+                <dt>{group.area}</dt>
+                <dd>{group.items.join(', ')}</dd>
+              </div>
+            ))
+          }
+        </dl>
+      </section>
+
+      <section aria-labelledby="awards">
+        <h2 id="awards" class="section-title"><span aria-hidden="true">## </span>Awards and certifications</h2>
+        <ul class="awards">
+          {
+            resume.awards.map((award) => (
+              <li>
+                <span class="award-title">{award.title}</span>
+                <span class="award-meta">
+                  {award.org}, {award.year}
+                </span>
+              </li>
+            ))
+          }
+          {
+            resume.certifications.map((cert) => (
+              <li>
+                <span class="award-title">{cert.name}</span>
+                <span class="award-meta">{cert.status ? `Certification (${cert.status})` : 'Certification'}</span>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+    </div>
   </div>
 </BaseLayout>
+
+<style>
+  .actions {
+    margin-top: 1.75rem;
+  }
+
+  .print-only {
+    display: none;
+  }
+
+  section {
+    margin-top: clamp(2.5rem, 2rem + 2vw, 3.5rem);
+  }
+
+  .section-title {
+    margin-bottom: 1.5rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    break-after: avoid;
+  }
+
+  .section-title span {
+    color: var(--color-accent);
+  }
+
+  .pubs {
+    display: grid;
+    gap: 0.875rem;
+    max-width: var(--container-prose);
+    line-height: 1.6;
+  }
+
+  .pub-authors {
+    color: var(--color-muted);
+  }
+
+  .columns {
+    display: grid;
+    gap: 0 3rem;
+  }
+
+  @media (min-width: 48rem) {
+    .columns {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .skills {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .skills dt {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--color-muted);
+  }
+
+  .skills dd {
+    margin-top: 0.125rem;
+  }
+
+  .awards {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .award-title {
+    display: block;
+    font-weight: 600;
+  }
+
+  .award-meta {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--color-muted);
+  }
+
+  /* Print (A4 and Letter): black on white, no site chrome, compact type. */
+  @media print {
+    :global(:root) {
+      --color-bg: #fff;
+      --color-surface: #fff;
+      --color-surface-2: #f2f2f2;
+      --color-line: #bbb;
+      --color-fg: #111;
+      --color-muted: #444;
+      --color-faint: #555;
+      --color-accent: #111;
+    }
+
+    /* Light canvas (no dark page margins) and a smaller root so rem sizes shrink too. */
+    :global(html) {
+      color-scheme: light;
+      background: #fff !important;
+      font-size: 9pt;
+    }
+
+    :global(body) {
+      background: #fff !important;
+      font-size: 1rem;
+      line-height: 1.45;
+    }
+
+    :global(.site-header),
+    :global(.site-footer),
+    :global(.skip-link),
+    .screen-only {
+      display: none !important;
+    }
+
+    .resume {
+      max-width: none;
+      padding: 0;
+    }
+
+    .print-only {
+      display: block;
+    }
+
+    .print-name {
+      font-family: var(--font-mono);
+      font-size: 2.25rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .print-contact {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0 1.25em;
+      margin-top: 0.25rem;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+    }
+
+    .print-contact a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .print-summary {
+      margin-top: 0.5rem;
+    }
+
+    section {
+      margin-top: 1.1rem;
+    }
+
+    .section-title {
+      margin-bottom: 0.6rem;
+      padding-bottom: 0.2rem;
+      border-bottom: 1px solid var(--color-line);
+      font-size: 1.15rem;
+    }
+
+    .section-title span {
+      display: none;
+    }
+
+    .resume :global(.timeline) {
+      gap: 0.8rem;
+    }
+
+    /* Dates beside the entry, as on wide screens, to save height. */
+    .resume :global(.timeline .item) {
+      grid-template-columns: 11rem minmax(0, 1fr);
+    }
+
+    .resume :global(.points) {
+      margin-top: 0.3rem;
+      gap: 0.15rem;
+    }
+
+    .resume :global(a) {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .columns {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    li,
+    .skills div {
+      break-inside: avoid;
+    }
+  }
+
+  @page {
+    margin: 14mm 15mm;
+  }
+</style>

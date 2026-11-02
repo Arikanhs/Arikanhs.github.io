@@ -47,3 +47,9 @@ Search for "Placeholder" in src/content/ to find every spot.
 
 ## Home hero (Stage 7)
 - [ ] Check the hero's "focus" and "status" lines (src/lib/site.ts, `focus` and `status`).
+
+## Resume (Stage 8)
+- [ ] Review src/data/resume.yaml: wording, the skill groups (reorganized from your resume
+      plus tools named in your experience bullets), and whether you want "U.S. citizen" and
+      the GPA public. Then run `npm run cv` to regenerate public/cv.pdf and commit it.
+- [ ] Print /resume from your browser once (A4 or Letter) to confirm you like the layout.

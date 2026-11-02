@@ -72,6 +72,13 @@ const cases = [
     command: 'build',
   },
   {
+    name: 'a phone number in resume.yaml fails',
+    file: '../data/resume.yaml',
+    edit: (s: string) => s.replace("- 'GPA: 3.7'", "- 'Call +1 555 010 0100'"),
+    error: /must not contain a phone number/,
+    fails: true,
+  },
+  {
     name: 'malformed BibTeX fails',
     file: 'publications/gcn-cuda-hpec-2025.md',
     edit: (s: string) => s.replace('year      = {2025},', 'year      = {2025,'),

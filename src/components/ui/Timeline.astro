@@ -1,0 +1,127 @@
+---
+// A vertical timeline of dated entries (resume education and experience).
+import { formatMonth } from '../../lib/format';
+
+export interface TimelineItem {
+  title: string;
+  org: string;
+  url?: string;
+  start: string;
+  end: string;
+  label?: string;
+  points: string[];
+}
+
+interface Props {
+  items: TimelineItem[];
+}
+
+const { items } = Astro.props;
+---
+
+<ol class="timeline">
+  {
+    items.map((item) => (
+      <li class="item">
+        <p class="when">
+          {item.label ?? (
+            <>
+              <time datetime={item.start}>{formatMonth(item.start)}</time> –{' '}
+              {item.end === 'present' ? 'Present' : <time datetime={item.end}>{formatMonth(item.end)}</time>}
+            </>
+          )}
+        </p>
+        <div class="what">
+          <h3 class="title">{item.title}</h3>
+          <p class="org">
+            {item.url ? (
+              <a class="link" href={item.url}>
+                {item.org}
+              </a>
+            ) : (
+              item.org
+            )}
+          </p>
+          {item.points.length > 0 && (
+            <ul class="points">
+              {item.points.map((point) => (
+                <li>{point}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .timeline {
+    position: relative;
+    display: grid;
+    gap: 2rem;
+    padding-left: 1.5rem;
+    border-left: 1px solid var(--color-line);
+  }
+
+  .item {
+    position: relative;
+    display: grid;
+    gap: 0.25rem 2rem;
+    break-inside: avoid;
+  }
+
+  /* Node on the line. */
+  .item::before {
+    content: '';
+    position: absolute;
+    top: 0.45rem;
+    left: calc(-1.5rem - 4px);
+    width: 7px;
+    height: 7px;
+    background-color: var(--color-accent);
+  }
+
+  .when {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--color-muted);
+    white-space: nowrap;
+  }
+
+  .title {
+    font-size: 1.0625rem;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  .org {
+    margin-top: 0.125rem;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    color: var(--color-muted);
+  }
+
+  .points {
+    display: grid;
+    gap: 0.4rem;
+    margin-top: 0.75rem;
+    padding-left: 1.1rem;
+    list-style: square;
+    line-height: 1.6;
+  }
+
+  .points li::marker {
+    color: var(--color-accent);
+  }
+
+  @media (min-width: 48rem) {
+    .item {
+      grid-template-columns: 11rem minmax(0, 1fr);
+    }
+
+    .when {
+      padding-top: 0.2rem;
+    }
+  }
+</style>

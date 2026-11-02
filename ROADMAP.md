@@ -22,7 +22,7 @@ Fill these in once; stages refer to them.
 - [x] Stage 5: Projects section with ASCII cards
 - [x] Stage 6: Project pages and view transitions
 - [x] Stage 7: Terminal hero
-- [ ] Stage 8: Resume
+- [x] Stage 8: Resume
 - [ ] Stage 9: Publications
 - [ ] Stage 10: Blog
 - [ ] Stage 11: Command palette and motion polish

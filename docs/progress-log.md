@@ -13,7 +13,7 @@ Autonomous build run started 2026-11-01. Instructions: docs/run-instructions.md
    number from private/ at runtime; never write the number into any file).
 
 ## Current status
-- Stage 7 committed. Next: Stage 8 (Resume).
+- Stage 8 committed. Next: Stage 9 (Publications).
 
 ## Setup (2026-11-01)
 - Keep-awake: `caffeinate -dims` started in the background, **PID 9205** (restarted after
@@ -200,3 +200,21 @@ Autonomous build run started 2026-11-01. Instructions: docs/run-instructions.md
   375 without JS and mid-typing reviewed.
 - Carry forward to Stage 8: the hero's "cv" link points to /resume/; switch it to
   /cv.pdf once that file exists.
+
+## Stage 8: Resume (done)
+- Built: src/data/resume.yaml from the resume PDF text (no phone, no address), loaded as
+  a `resume` content collection (file() loader) whose schema rejects phone-number-like
+  text. /resume: summary, Download PDF, timelines (Timeline.astro) for education,
+  experience and projects/involvement, publications from the collection, skills grouped
+  by area, awards and certifications. Print stylesheet: tokens remapped to black on
+  white, light canvas, 9pt root, dates beside entries, no site chrome, a print-only name
+  and contact header, @page margins. scripts/export-cv.mjs + `npm run cv` print /resume
+  to public/cv.pdf (Letter, tagged). Hero "cv" link now points to /cv.pdf.
+- Tests: tests/e2e/resume.spec.ts (sections and timeline counts from the YAML; Download
+  PDF -> existing cv.pdf with the owner's name; prints to <= 2 pages on A4 and on Letter,
+  chrome hidden, no overflow at the printable width). content.spec: a phone number in
+  resume.yaml fails the build.
+- Checks: build OK; astro check 0/0/0; `npm test` 74 passed; cv.pdf read page by page
+  (2 pages, clean); screenshots at 375/1280 reviewed; privacy check scanned the PDF text.
+- Review fixes: dark page frame in print (dark color-scheme canvas), print type too big
+  (3 pages -> 2), cramped date column for "Spring 2023 – Fall 2023".

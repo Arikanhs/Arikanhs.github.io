@@ -157,3 +157,16 @@ Each entry says what was chosen and why.
 - **Once per visit** = sessionStorage flag set by an inline script in the hero, which also
   runs before first paint so nothing flashes.
 - **Name is the h1**, shown as the output of `whoami`.
+
+## Stage 8
+
+- **resume.yaml is a content collection** (file() loader, one entry `resume`), so it is
+  validated by Zod at build time like the rest of the content, with no YAML dependency.
+- **Defence in depth for privacy:** the schema refuses phone-number-like text, the
+  privacy script scans the YAML and the text of cv.pdf, and cv.pdf is printed from the
+  public page, so it can only contain what the site already shows.
+- **cv.pdf is generated locally and committed** (public/), not in CI: the deploy workflow
+  stays a plain withastro/action build. Regenerate with `npm run cv` after editing the YAML.
+- **Letter for cv.pdf** (US-based owner); the print stylesheet is tested on A4 too.
+- **Skill groups** were reorganized from the resume's single list plus tools named in the
+  experience bullets (Keras, Slurm, Kokkos, OpenMP, React, NestJS...); review them.

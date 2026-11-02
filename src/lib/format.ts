@@ -2,3 +2,13 @@
 export function displayUrl(url: string): string {
   return url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
 }
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/** "2024-06" -> "Jun 2024", "2026" -> "2026", "present" -> "Present". */
+export function formatMonth(value: string): string {
+  if (value === 'present') return 'Present';
+  const [year, month] = value.split('-');
+  return month ? `${MONTHS[Number(month) - 1]} ${year}` : year;
+}
+

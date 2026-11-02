@@ -1,5 +1,5 @@
 import { defineCollection, reference } from 'astro:content';
-import { glob } from 'astro/loaders';
+import { file, glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 import { isValidBibtex } from './lib/bibtex';
 
@@ -62,4 +62,56 @@ const blog = defineCollection({
   }),
 });
 
-export const collections = { projects, publications, blog };
+/** YYYY or YYYY-MM. */
+const month = z.string().regex(/^\d{4}(-\d{2})?$/, 'use YYYY or YYYY-MM');
+const period = {
+  start: month,
+  end: z.union([month, z.literal('present')]),
+  /** Shown instead of the formatted dates, e.g. "Spring 2023 – Fall 2023". */
+  label: z.string().optional(),
+};
+const role = z.object({
+  title: z.string().min(1),
+  org: z.string().min(1),
+  url: z.url().optional(),
+  ...period,
+  points: z.array(z.string().min(1)).default([]),
+});
+
+/** Phone-number-like text: a run of 10 or more digits with separators. */
+const PHONE = /\+?\(?\d[\d\s().-]{8,}\d/;
+function containsPhone(value: unknown): boolean {
+  if (typeof value === 'string') {
+    return [...value.matchAll(new RegExp(PHONE, 'g'))].some((m) => m[0].replace(/\D/g, '').length >= 10);
+  }
+  if (Array.isArray(value)) return value.some(containsPhone);
+  if (value && typeof value === 'object') return Object.values(value).some(containsPhone);
+  return false;
+}
+
+// One entry (id "resume") read from src/data/resume.yaml.
+const resume = defineCollection({
+  loader: file('src/data/resume.yaml'),
+  schema: z
+    .object({
+      summary: z.string().min(1),
+      education: z.array(
+        z.object({
+          degree: z.string().min(1),
+          school: z.string().min(1),
+          ...period,
+          details: z.array(z.string().min(1)).default([]),
+        }),
+      ),
+      experience: z.array(role),
+      involvement: z.array(role).default([]),
+      skills: z.array(z.object({ area: z.string().min(1), items: z.array(z.string().min(1)).min(1) })),
+      awards: z.array(z.object({ title: z.string().min(1), org: z.string().min(1), year: z.string() })).default([]),
+      certifications: z.array(z.object({ name: z.string().min(1), status: z.string().optional() })).default([]),
+    })
+    .refine((data) => !containsPhone(data), {
+      message: 'resume.yaml must not contain a phone number (it is published on the site and in cv.pdf)',
+    }),
+});
+
+export const collections = { projects, publications, blog, resume };

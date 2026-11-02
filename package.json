@@ -13,7 +13,8 @@
     "astro": "astro",
     "check": "astro check",
     "test": "astro build && playwright test",
-    "check:private": "node scripts/check-private.mjs"
+    "check:private": "node scripts/check-private.mjs",
+    "cv": "astro build && node scripts/export-cv.mjs && astro build"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",

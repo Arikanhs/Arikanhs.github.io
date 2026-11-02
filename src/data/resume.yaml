@@ -1,0 +1,98 @@
+# Resume data for /resume and public/cv.pdf (generated with `npm run cv`).
+# Built from the resume PDF. Never add a phone number or home address here:
+# the schema rejects phone-number-like text, and the privacy check scans this file.
+# Dates: YYYY-MM or YYYY; `end: present` for ongoing; `label` overrides the shown dates.
+resume:
+  summary: >-
+    Computer science master's student in machine learning, artificial intelligence and
+    cybersecurity (3+ years of experience). National Science Foundation SFS scholar.
+    Author of two research publications. U.S. citizen.
+
+  education:
+    - degree: Master of Science in ML, AI and Cybersecurity
+      school: University of Nevada, Las Vegas (UNLV)
+      start: 2026-08
+      end: 2028-05
+      details:
+        - National Science Foundation CyberCorps Scholarship for Service (SFS) scholar
+    - degree: Bachelor of Science in Computer Science
+      school: University of Nevada, Las Vegas (UNLV)
+      start: 2021-05
+      end: 2025-12
+      details:
+        - 'GPA: 3.7'
+
+  experience:
+    - title: Machine Learning Intern
+      org: Lawrence Berkeley National Laboratory
+      start: 2024-06
+      end: 2024-08
+      points:
+        - Built Python data pipelines to clean and preprocess protein sequence data, delivering accurate, high-quality input for a deep learning model modeled on Google DeepMind's AlphaFold.
+        - Cut processing time for 90,000+ protein records by 54% through parallelized Python, Bash and Slurm scripting on a high-performance computing cluster.
+    - title: Machine Learning Intern
+      org: National Renewable Energy Laboratory
+      start: 2024-01
+      end: 2024-05
+      points:
+        - Built and evaluated machine learning models (ARIMA, SVM, ANN, KNN, LSTM) in Python using TensorFlow and Keras to forecast commercial building energy demand.
+        - Improved forecasting accuracy by 34% over existing baseline models by evaluating alternative algorithms and engineering a feature extraction and data pre-processing pipeline.
+    - title: High Performance Computing Intern
+      org: Lawrence Berkeley National Laboratory
+      start: 2023-06
+      end: 2023-08
+      points:
+        - Designed and executed benchmarking analysis of parallel graph algorithms (triangle counting, connected components, PageRank) on CPU and GPU using C++, OpenMP and Kokkos, with low-level compiler and machine-code optimization.
+        - Co-authored a peer-reviewed research paper presenting the benchmarking results.
+    - title: Teaching Assistant
+      org: University of Nevada, Las Vegas
+      start: 2023-01
+      end: 2023-12
+      label: Spring 2023 – Fall 2023
+      points:
+        - Mentored 60+ students in CS 218 (Systems Programming), guiding them through assembly language, data representation, instruction sets and debugging via weekly office hours and hands-on assignment support.
+        - Facilitated CS 301 (Social Implications of Computer Technology), leading discussions on computing ethics, data privacy, cybersecurity and intellectual property, and evaluating student presentations and written work.
+
+  involvement:
+    - title: Cyber Clinic at UNLV
+      org: Free Cyber Clinic
+      url: https://freecyberclinic.org/about
+      start: '2026'
+      end: present
+      points:
+        - Assessing the cybersecurity posture of local businesses and organizations, identifying vulnerabilities and delivering actionable recommendations to strengthen their security defenses.
+    - title: 'Peak Focus: gamified productivity web app and Chrome extension'
+      org: Team project
+      url: https://github.com/hetavigheewala/CS472-Gamified-Productivity
+      start: 2025-09
+      end: 2025-12
+      points:
+        - Built a focus-productivity platform in which users climb a pixel-art mountain by completing work sessions, combining a React/TypeScript web app (Vite, Tailwind, Phaser) with a Manifest V3 Chrome extension and a NestJS, Prisma and PostgreSQL backend.
+        - Architected the Chrome extension (Vite pipeline, background service worker) with session-aware website blocking that persists across restarts, plus Google OAuth 2.0 and a leaderboard spanning app, backend and extension.
+    - title: Undergraduate Researcher
+      org: DiSC Lab, UNLV
+      url: https://arifuzzaman.faculty.unlv.edu/research.html
+      start: 2023-08
+      end: 2025-12
+      points:
+        - Conducted research at the intersection of large-scale algorithms, high performance computing (HPC) and optimization, developing scalable machine learning models for graph problems.
+
+  skills:
+    - area: Languages
+      items: [Python, C++, Java, Assembly, SQL, R, Bash]
+    - area: Machine learning
+      items: [PyTorch, TensorFlow, Keras]
+    - area: HPC and systems
+      items: [CUDA, OpenMP, Kokkos, Slurm, Linux]
+    - area: Web
+      items: [React, TypeScript, NestJS, PostgreSQL]
+
+  awards:
+    - title: CyberCorps Scholarship for Service (SFS)
+      org: National Science Foundation
+      year: '2026'
+
+  certifications:
+    - name: Certified Ethical Hacker (CEH)
+    - name: AWS Cloud
+      status: in progress
