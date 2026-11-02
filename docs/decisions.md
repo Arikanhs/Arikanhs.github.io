@@ -74,3 +74,20 @@ Each entry says what was chosen and why.
   Playwright suite needs browsers in CI. Tests run locally (`npm test`) before every commit.
 - **User-site repo `Arikanhs.github.io`** so `site` is the bare github.io URL and every
   internal link can stay root-relative.
+
+## Stage 3
+
+- **Real data, marked gaps.** The samples use the two real publications and projects
+  from the resume and the public repos instead of lorem ipsum. Anything not in those
+  sources (dates, full author lists, write-ups) is marked "Placeholder".
+- **Repo-to-paper mapping** from READMEs and the resume: `ml_cuda` = HPEC 2025 GCN/CUDA
+  paper (IEEE 11196239), `Graph-Algorithms-LBNL` = IPDPSW 2024 Kokkos paper (IEEE 10596346);
+  the IEEE links were matched to papers by their position in the resume PDF.
+- **`et al.` in BibTeX is `and others`**, which is valid BibTeX and renders as "et al.".
+- **Schema strictness:** `repo` must be https://github.com/owner/repo; `bibtex` must parse
+  as one entry with title, author and year; `projectSlug` uses `reference('projects')`.
+  `featured` is required (the spec lists it), `draft` defaults to false.
+- **Generated covers** instead of stock photos: no licensing questions, reproducible, and
+  shaped for ASCII (big shapes, strong brightness ramps, saturated color).
+- **`astro sync` in schema tests.** It runs the same content validation as `astro build`
+  in about 2 s on a temporary copy, so the tests never touch the real content files.

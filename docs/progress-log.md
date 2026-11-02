@@ -13,7 +13,7 @@ Autonomous build run started 2026-11-01. Instructions: docs/run-instructions.md
    number from private/ at runtime; never write the number into any file).
 
 ## Current status
-- Stage 2 committed. Next: Stage 3 (Content model).
+- Stage 3 committed. Next: Stage 4 (ASCII lab).
 
 ## Setup (2026-11-01)
 - Keep-awake: `caffeinate -dims` started in the background, **PID 9205**.
@@ -86,3 +86,25 @@ Autonomous build run started 2026-11-01. Instructions: docs/run-instructions.md
   new screenshots.
 - Done-when ("a push to main publishes the site") needs the owner's GitHub account;
   listed in docs/TODO-for-me.md.
+
+## Stage 3: Content model (done)
+- Built: src/content.config.ts with glob loaders and Zod 4 schemas for projects (incl.
+  `image()` cover, GitHub-only `repo`), publications (`reference('projects')` for
+  projectSlug, BibTeX validated by src/lib/bibtex.ts) and blog (`draft` defaults to false).
+  Content: 3 projects (Image2ASCII; GCN-driven CUDA tuning = ml_cuda; Graph algorithms on
+  Kokkos = Graph-Algorithms-LBNL), the 2 real publications from the resume (unknown
+  authors kept as "et al." / `and others`), 2 labelled sample posts (one with code + math
+  for Stage 10). Facts come only from the resume and public READMEs; gaps say "Placeholder".
+  Covers: scripts/make-covers.mjs draws 3 deterministic sample images with canvas in
+  headless Chromium (sunset/ridges, CUDA heatmap + GCN graph, low-poly triangle mesh).
+  /projects: plain grid of cards (title, summary, tags, repo link) sorted by `order`.
+- Tests added: tests/e2e/content.spec.ts (grid matches the content files and their order;
+  schema cases run `astro sync` on a copy: clean copy passes; missing summary, non-GitHub
+  repo and malformed BibTeX fail; a broken projectSlug is reported).
+- Checks: build OK; astro check 0/0/0; `npm test` 34 passed; screenshots of /projects at
+  375/1280 reviewed. Done-when verified: 3 cards; a real `astro build` of a copy with
+  `summary` deleted exits 1 with "summary: Required".
+- Found: Astro 7 only *logs* invalid references (does not fail). Stage 6/9 pages that
+  resolve projectSlug must throw on a missing project so the build fails.
+- Review fixes: removed a hover border from the not-yet-clickable cards; regenerated the
+  low-poly cover with a brighter ramp.

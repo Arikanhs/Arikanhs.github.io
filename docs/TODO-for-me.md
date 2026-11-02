@@ -19,3 +19,21 @@ Things only you can do or confirm. Grouped by topic; each line says where to cha
 - [ ] Merge `autobuild` into `main` and push (exact commands are in the final report).
 - [ ] Confirm the Stage 2 "Done when": the Actions tab shows "Deploy to GitHub Pages"
       succeeded and https://arikanhs.github.io loads the site.
+
+## Content (Stage 3)
+Search for "Placeholder" in src/content/ to find every spot.
+- [ ] **Image2ASCII** (src/content/projects/image2ascii.md): there is no public repo at
+      https://github.com/Arikanhs/Image2ASCII yet, so its link is a 404 until you publish it
+      (or change `repo`). Also set the real date and write-up, and replace the generated
+      cover with one of your own input images.
+- [ ] Confirm the code repos matched to your papers: `ml_cuda` for the HPEC 2025 GCN/CUDA
+      paper and `Graph-Algorithms-LBNL` for the IPDPSW 2024 Kokkos paper. Both READMEs and
+      your resume point that way. Set the real project dates.
+- [ ] Publications: replace "et al." with the full author lists and paste the official
+      BibTeX from IEEE Xplore (adds DOI and pages). Add `pdf:` links if you can share them.
+- [ ] Project covers in src/assets/projects/ are generated samples
+      (`node scripts/make-covers.mjs`); swap in real images whenever you like.
+- [ ] The two blog posts are labelled samples; replace or delete them.
+- [ ] More projects you could add from your resume and GitHub: Peak Focus (team repo
+      hetavigheewala/CS472-Gamified-Productivity), the AlphaFold data pipeline
+      (Alpha-Fold-LBNL), NREL energy forecasting (ML-NREL), gov_job_finder.

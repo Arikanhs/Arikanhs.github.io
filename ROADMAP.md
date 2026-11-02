@@ -17,7 +17,7 @@ Fill these in once; stages refer to them.
 - [x] Stage 0: Scaffold
 - [x] Stage 1: Design direction and layout
 - [x] Stage 2: Deploy early
-- [ ] Stage 3: Content model
+- [x] Stage 3: Content model
 - [ ] Stage 4: ASCII lab
 - [ ] Stage 5: Projects section with ASCII cards
 - [ ] Stage 6: Project pages and view transitions
