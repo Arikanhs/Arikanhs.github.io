@@ -109,6 +109,7 @@ class AsciiController {
   private cells?: CellData;
   private hovered = false;
   private focused = false;
+  private introPlayed = false;
   /** True from the start of goLive() until release: counts against MAX_LIVE. */
   holdsSlot = false;
   nearViewport = false;
@@ -283,8 +284,10 @@ class AsciiController {
     this.showGrid(tm);
     canvas.classList.add('is-ready');
     this.setState('live');
-    // Hovered while it was still loading: play the reveal now.
-    if (this.hovered || this.focused) this.play('reveal');
+    // Hovered while it was still loading, or an intro is wanted: reveal now.
+    const intro = this.root.hasAttribute('data-ascii-intro') && !this.introPlayed;
+    this.introPlayed = true;
+    if (this.hovered || this.focused || intro) this.play('reveal');
   }
 
   private drawLive(live: LiveInstance) {

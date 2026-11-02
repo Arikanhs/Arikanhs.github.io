@@ -1,18 +1,18 @@
 ---
 // Dev-only page (/lab/cards): the project grid with the sample entries repeated
 // to 10 cards, for checking scrolling and the live WebGL budget.
-import { getCollection } from 'astro:content';
 import PageHeader from '../../components/ui/PageHeader.astro';
 import ProjectGrid from '../../components/ui/ProjectGrid.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getProjects } from '../../lib/content';
 
-const sorted = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+const sorted = await getProjects();
 const projects = Array.from({ length: 10 }, (_, i) => sorted[i % sorted.length]);
 ---
 
 <BaseLayout title="Card lab" description="Development page: ten project cards.">
   <div class="container-page">
     <PageHeader title="Card lab" path="~/lab/cards" lede="Development only. Ten cards to check scrolling and WebGL limits." />
-    <ProjectGrid projects={projects} label="Projects" />
+    <ProjectGrid projects={projects} label="Projects" morph={false} />
   </div>
 </BaseLayout>

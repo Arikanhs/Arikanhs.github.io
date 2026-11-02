@@ -84,7 +84,9 @@ function current(href: string) {
     document.addEventListener('astro:before-swap', () => controller.abort(), { once: true });
   }
 
-  initNav();
+  // With <ClientRouter />, astro:page-load fires on the first load and after
+  // every navigation (the header is new each time; initNav guards re-entry).
+  document.addEventListener('astro:page-load', initNav);
 </script>
 
 <style>

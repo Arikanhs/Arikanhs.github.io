@@ -132,3 +132,17 @@ Each entry says what was chosen and why.
   is accepted rather than reordering projects.
 - **Summary clamped to three lines on cards** (full text stays in the DOM for screen
   readers and appears on the project page).
+
+## Stage 6
+
+- **Whole card clickable via a stretched title link** (one link per destination, the repo
+  link stays separately focusable above it) rather than wrapping the card in `<a>`.
+- **Morph target is the whole card -> the ASCII header**, named `project-<id>`. The dev-only
+  card lab, which repeats projects, turns the names off (`morph={false}`), since a name
+  may appear only once per page.
+- **Header intro:** the project header plays the reveal once when it first goes live, so
+  arriving at a project "decodes" its image. Not under reduced motion.
+- **Broken projectSlug fails the build** in getPublications(), because Astro 7 only logs
+  invalid references.
+- **No Tailwind typography plugin:** a small `.prose` block in global.css matches the
+  design tokens exactly and avoids a dependency.

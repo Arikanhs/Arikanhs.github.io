@@ -27,12 +27,17 @@ test('/projects lists every project, sorted by order, with title, summary, tags 
   for (const card of await cards.all()) {
     await expect(card.locator('p')).not.toBeEmpty();
     await expect(card.getByRole('list', { name: 'Tags' }).getByRole('listitem').first()).toBeVisible();
-    await expect(card.getByRole('link')).toHaveAttribute('href', /^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/?$/);
+    await expect(card.getByRole('link', { name: /github\.com/ })).toHaveAttribute(
+      'href',
+      /^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/?$/,
+    );
+    await expect(card.getByRole('heading').getByRole('link')).toHaveAttribute('href', /^\/projects\/[\w-]+\/$/);
   }
 });
 
 // Each case copies the site into the test's output folder, breaks one entry and
-// runs `astro sync`, which loads and validates every content collection.
+// runs `astro sync` (loads and validates every content collection) or, where a
+// check happens while rendering pages, `astro build`.
 // `fails: false` cases must still report the error. (Astro logs broken references
 // instead of failing; the pages that resolve projectSlug turn them into failures.)
 const cases = [
@@ -57,6 +62,14 @@ const cases = [
     edit: (s: string) => s.replace(/^projectSlug:.*$/m, 'projectSlug: no-such-project'),
     error: /Invalid content reference.*no-such-project/,
     fails: false,
+  },
+  {
+    name: 'a publication pointing at a missing project fails the build',
+    file: 'publications/kokkos-ipdpsw-2024.md',
+    edit: (s: string) => s.replace(/^projectSlug:.*$/m, 'projectSlug: no-such-project'),
+    error: /no project has that id/,
+    fails: true,
+    command: 'build',
   },
   {
     name: 'malformed BibTeX fails',
@@ -85,7 +98,7 @@ for (const c of cases) {
       fs.writeFileSync(target, after);
     }
 
-    const run = spawnSync('npx', ['astro', 'sync'], { cwd: site, encoding: 'utf8' });
+    const run = spawnSync('npx', ['astro', 'command' in c ? c.command! : 'sync'], { cwd: site, encoding: 'utf8' });
     const output = `${run.stdout}\n${run.stderr}`;
     if (c.fails) expect(run.status, output).not.toBe(0);
     else expect(run.status, output).toBe(0);

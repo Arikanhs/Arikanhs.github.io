@@ -8,16 +8,18 @@ interface Props {
   projects: CollectionEntry<'projects'>[];
   label: string;
   headingLevel?: 2 | 3;
+  /** Cards morph into project pages; turn off when a project is listed twice. */
+  morph?: boolean;
 }
 
-const { projects, label, headingLevel } = Astro.props;
+const { projects, label, headingLevel, morph } = Astro.props;
 ---
 
 <ul class="project-grid" aria-label={label}>
   {
     projects.map((project) => (
       <li class:list={{ 'is-featured': project.data.featured }}>
-        <ProjectCard project={project} headingLevel={headingLevel} />
+        <ProjectCard project={project} headingLevel={headingLevel} morph={morph} />
       </li>
     ))
   }

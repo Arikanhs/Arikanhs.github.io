@@ -26,11 +26,19 @@ export async function canvasChecksum(canvas: Locator) {
   });
 }
 
+/**
+ * Astro's ClientRouter announces, as a console warning, that it turns view
+ * transition animations off under reduced motion. Expected; not a problem.
+ */
+export const isExpectedWarning = (text: string) => text.startsWith('[transitions]: all view transition animations');
+
 /** Console warnings/errors and page errors seen by a page. */
 export function collectProblems(page: Page) {
   const problems: string[] = [];
   page.on('console', (msg) => {
-    if (msg.type() === 'warning' || msg.type() === 'error') problems.push(`${msg.type()}: ${msg.text()}`);
+    if ((msg.type() === 'warning' || msg.type() === 'error') && !isExpectedWarning(msg.text())) {
+      problems.push(`${msg.type()}: ${msg.text()}`);
+    }
   });
   page.on('pageerror', (err) => problems.push(`pageerror: ${err.message}`));
   return problems;

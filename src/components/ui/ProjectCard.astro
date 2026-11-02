@@ -10,19 +10,25 @@ interface Props {
   project: CollectionEntry<'projects'>;
   /** 2 on /projects, 3 inside a titled section such as "Selected work". */
   headingLevel?: 2 | 3;
+  /** Morph into the project page's header (off where a project appears twice). */
+  morph?: boolean;
 }
 
-const { project, headingLevel = 2 } = Astro.props;
+const { project, headingLevel = 2, morph = true } = Astro.props;
 const { title, summary, tags, repo, cover, featured } = project.data;
 const Heading = headingLevel === 2 ? 'h2' : 'h3';
 ---
 
-<article class:list={['card', { 'is-featured': featured }]} data-ascii-trigger>
+<article
+  class:list={['card', { 'is-featured': featured }]}
+  data-ascii-trigger
+  transition:name={morph ? `project-${project.id}` : undefined}
+>
   <div class="art">
     <AsciiImage src={cover} />
   </div>
   <div class="body">
-    <Heading class="title">{title}</Heading>
+    <Heading class="title"><a class="stretched" href={`/projects/${project.id}/`}>{title}</a></Heading>
     <p class="summary">{summary}</p>
     <TagList tags={tags} class="tags" />
     <a class="link repo" href={repo}>{displayUrl(repo)}<span aria-hidden="true"> ↗</span></a>
@@ -88,6 +94,27 @@ const Heading = headingLevel === 2 ? 'h2' : 'h3';
     letter-spacing: -0.01em;
   }
 
+  /* The title link covers the whole card; the repo link sits above it. */
+  .stretched {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .stretched::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .stretched:focus-visible {
+    outline: none;
+  }
+
+  .stretched:focus-visible::after {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
+  }
+
   .is-featured .title {
     font-size: clamp(1.375rem, 1.1rem + 1vw, 1.75rem);
   }
@@ -110,6 +137,8 @@ const Heading = headingLevel === 2 ? 'h2' : 'h3';
   }
 
   .repo {
+    position: relative;
+    z-index: 1;
     display: inline-block;
     margin-top: 1rem;
     font-family: var(--font-mono);

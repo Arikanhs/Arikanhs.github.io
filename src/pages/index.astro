@@ -1,13 +1,11 @@
 ---
-import { getCollection } from 'astro:content';
 import PageHeader from '../components/ui/PageHeader.astro';
 import ProjectGrid from '../components/ui/ProjectGrid.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { getProjects } from '../lib/content';
 import { SITE } from '../lib/site';
 
-const featured = (await getCollection('projects', ({ data }) => data.featured)).sort(
-  (a, b) => a.data.order - b.data.order,
-);
+const featured = (await getProjects()).filter((project) => project.data.featured);
 ---
 
 <BaseLayout>

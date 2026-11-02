@@ -17,6 +17,8 @@ interface Props {
   normalize?: boolean;
   /** Describe the image when it carries meaning; decorative by default. */
   alt?: string;
+  /** Play the reveal effect once when the live version first appears. */
+  intro?: boolean;
   class?: string;
 }
 
@@ -27,6 +29,7 @@ const {
   background = '#0d0c0b',
   normalize = true,
   alt,
+  intro = false,
   class: className,
 } = Astro.props;
 
@@ -42,6 +45,7 @@ const url = typeof src === 'string' ? src : (await getImage({ src, width: 640, f
   data-background={background}
   data-normalize={String(normalize)}
   data-ascii-state="idle"
+  data-ascii-intro={intro ? '' : undefined}
   style={`--ascii-bg: ${background}`}
   role={alt ? 'img' : undefined}
   aria-label={alt}
@@ -54,7 +58,10 @@ const url = typeof src === 'string' ? src : (await getImage({ src, width: 640, f
 <script>
   import { initAsciiImages } from './runtime';
 
+  // Bundled scripts run once; with client-side navigation, pick up the new
+  // page's roots on every page load (initAsciiImages is idempotent).
   initAsciiImages();
+  document.addEventListener('astro:page-load', initAsciiImages);
 </script>
 
 <style>

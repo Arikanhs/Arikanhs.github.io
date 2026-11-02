@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
-import { canvasChecksum, openWithAscii } from './utils/ascii';
+import { canvasChecksum, isExpectedWarning, openWithAscii } from './utils/ascii';
 import { DIST } from './utils/site';
 
 // Runs in the "chrome-gpu" project: installed Chrome with a real GPU, against
@@ -16,7 +16,9 @@ test.describe.configure({ mode: 'default' });
 function watch(page: Page) {
   const log = { problems: [] as string[], textmodeRequested: false };
   page.on('console', (msg) => {
-    if (msg.type() === 'warning' || msg.type() === 'error') log.problems.push(`${msg.type()}: ${msg.text()}`);
+    if ((msg.type() === 'warning' || msg.type() === 'error') && !isExpectedWarning(msg.text())) {
+      log.problems.push(`${msg.type()}: ${msg.text()}`);
+    }
   });
   page.on('pageerror', (err) => log.problems.push(`pageerror: ${err.message}`));
   page.on('request', (req) => {

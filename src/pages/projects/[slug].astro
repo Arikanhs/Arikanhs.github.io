@@ -1,0 +1,207 @@
+---
+import { render } from 'astro:content';
+import AsciiImage from '../../components/ascii/AsciiImage.astro';
+import TagList from '../../components/ui/TagList.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getProjects, getPublications } from '../../lib/content';
+import { displayUrl } from '../../lib/format';
+
+export async function getStaticPaths() {
+  return (await getProjects()).map((project) => ({ params: { slug: project.id }, props: { project } }));
+}
+
+const { project } = Astro.props;
+const { title, summary, tags, repo, demo, cover } = project.data;
+const { Content } = await render(project);
+const related = (await getPublications()).filter((publication) => publication.data.projectSlug?.id === project.id);
+---
+
+<BaseLayout title={title} description={summary}>
+  <div class="container-page">
+    <p class="back">
+      <a class="link" href="/projects/"><span aria-hidden="true">← </span>All projects</a>
+    </p>
+
+    <header class="hero" transition:name={`project-${project.id}`} data-ascii-trigger>
+      <div class="art">
+        <AsciiImage src={cover} intro />
+      </div>
+      <div class="hero-body">
+        <p class="path" aria-hidden="true">~/projects/{project.id}</p>
+        <h1 class="title">{title}<span class="caret" aria-hidden="true"></span></h1>
+        <p class="lede">{summary}</p>
+        <TagList tags={tags} class="tags" />
+        <div class="actions">
+          <a class="button button-primary" href={repo}>
+            View code on GitHub<span aria-hidden="true">↗</span>
+          </a>
+          {
+            demo && (
+              <a class="button" href={demo}>
+                Live demo<span aria-hidden="true">↗</span>
+              </a>
+            )
+          }
+        </div>
+        <p class="repo-path">{displayUrl(repo)}</p>
+      </div>
+    </header>
+
+    <div class="layout">
+      <article class="prose" aria-label={`About ${title}`}>
+        <Content />
+      </article>
+
+      {
+        related.length > 0 && (
+          <aside class="related" aria-labelledby="related-title">
+            <h2 id="related-title" class="related-title">
+              <span aria-hidden="true">## </span>Related publications
+            </h2>
+            <ul>
+              {related.map((publication) => (
+                <li>
+                  {publication.data.url ? (
+                    <a class="link pub-title" href={publication.data.url}>
+                      {publication.data.title}
+                    </a>
+                  ) : (
+                    <span class="pub-title">{publication.data.title}</span>
+                  )}
+                  <span class="pub-meta">
+                    {publication.data.venue}, {publication.data.year}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </aside>
+        )
+      }
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .back {
+    padding-top: 2rem;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+  }
+
+  .hero {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    min-height: clamp(26rem, 40vw + 8rem, 34rem);
+    margin-top: 1.25rem;
+    overflow: hidden;
+    border: 1px solid var(--color-line);
+    border-radius: 3px;
+    background-color: var(--color-bg);
+  }
+
+  .art {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+  }
+
+  /* Same scrim as the cards: 90% page background before the text starts. */
+  .hero-body {
+    padding: 4rem clamp(1.25rem, 0.75rem + 2vw, 2.5rem) clamp(1.25rem, 0.75rem + 2vw, 2.25rem);
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      color-mix(in oklab, var(--color-bg) 90%, transparent) 3.5rem
+    );
+  }
+
+  .path {
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    color: var(--color-muted);
+  }
+
+  .title {
+    margin-top: 0.5rem;
+    font-size: clamp(1.875rem, 1.3rem + 2.4vw, 3rem);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  .lede {
+    margin-top: 1rem;
+    max-width: 62ch;
+    font-size: 1.125rem;
+    color: var(--color-muted);
+  }
+
+  .hero :global(.tags) {
+    margin-top: 1.25rem;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+
+  .repo-path {
+    margin-top: 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--color-muted);
+    overflow-wrap: anywhere;
+  }
+
+  .layout {
+    display: grid;
+    gap: 3rem;
+    margin-top: clamp(2.5rem, 2rem + 2vw, 4rem);
+  }
+
+  @media (min-width: 64rem) {
+    .layout {
+      grid-template-columns: minmax(0, 1fr) 20rem;
+      align-items: start;
+    }
+  }
+
+  .related {
+    padding: 1.25rem;
+    border: 1px solid var(--color-line);
+    background-color: var(--color-surface);
+  }
+
+  .related-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+  }
+
+  .related-title span {
+    color: var(--color-accent);
+  }
+
+  .related ul {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .pub-title {
+    display: block;
+    line-height: 1.45;
+  }
+
+  .pub-meta {
+    display: block;
+    margin-top: 0.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--color-muted);
+  }
+</style>

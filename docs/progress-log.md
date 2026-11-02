@@ -13,7 +13,7 @@ Autonomous build run started 2026-11-01. Instructions: docs/run-instructions.md
    number from private/ at runtime; never write the number into any file).
 
 ## Current status
-- Stage 5 committed. Next: Stage 6 (Project pages and view transitions).
+- Stage 6 committed. Next: Stage 7 (Terminal hero).
 
 ## Setup (2026-11-01)
 - Keep-awake: `caffeinate -dims` started in the background, **PID 9205** (restarted after
@@ -162,3 +162,24 @@ Autonomous build run started 2026-11-01. Instructions: docs/run-instructions.md
   screenshots of /projects (rest, mid-hover, 375px) and home reviewed.
 - Review fixes: art too faint at rest (55% -> 70%, taller cards, shorter scrim lead-in);
   live canvas was marked ready before its first frame was drawn.
+
+## Stage 6: Project pages and view transitions (done)
+- Built: /projects/[slug] from the Markdown body: ASCII header (same `transition:name` as
+  the card, plays the reveal once on arrival via `intro`), `~/projects/<id>` path, h1 with
+  cursor, summary, tags, "View code on GitHub" (+ "Live demo" when `demo` is set), body in
+  shared `.prose` styles, "Related publications" aside (projectSlug match).
+  `<ClientRouter />` site-wide; the `js` class is re-added to the incoming document in
+  `astro:before-swap`; initNav and initAsciiImages run on `astro:page-load`; card titles
+  are stretched links to the project page. src/lib/content.ts: getProjects() and
+  getPublications(), which throws on a projectSlug with no project (build fails).
+  Shared `.button`/`.button-primary` and `.prose` styles in global.css.
+- Tests: tests/e2e/transitions.spec.ts (GPU): card click morphs (view transition captured
+  the shared name, no reload), Back morphs back; 3 rounds over every project keep ASCII
+  rendering, <= 6 live contexts, clean console; reduced motion navigates without
+  animation. tests/e2e/project-page.spec.ts: detail content, related box, card links,
+  mobile menu and `js` class after client-side navigation. content.spec: a broken
+  projectSlug now fails `astro build`.
+- Checks: build OK (8 pages); astro check 0/0/0; `npm test` 64 passed; screenshots of a
+  project page at 375/1280 and after a card click reviewed.
+- Note: Astro's ClientRouter logs a console warning under reduced motion (animations off);
+  tests treat that one message as expected.
