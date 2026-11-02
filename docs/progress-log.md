@@ -13,10 +13,11 @@ Autonomous build run started 2026-11-01. Instructions: docs/run-instructions.md
    number from private/ at runtime; never write the number into any file).
 
 ## Current status
-- Stage 3 committed. Next: Stage 4 (ASCII lab).
+- Stage 4 committed. Next: Stage 5 (Projects section with ASCII cards).
 
 ## Setup (2026-11-01)
-- Keep-awake: `caffeinate -dims` started in the background, **PID 9205**.
+- Keep-awake: `caffeinate -dims` started in the background, **PID 9205** (restarted after
+  the crash as **PID 21067**).
 - Saved the run prompt to docs/run-instructions.md.
 - Git: the folder was not a repository, so the resume cannot be in git history.
   `git init -b main` with one empty root commit ("chore: initialize repository"),
@@ -108,3 +109,35 @@ Autonomous build run started 2026-11-01. Instructions: docs/run-instructions.md
   resolve projectSlug must throw on a missing project so the build fails.
 - Review fixes: removed a hover border from the not-yet-clickable cards; regenerated the
   low-poly cover with a brighter ramp.
+
+## Crash during Stage 4 (2026-11-01)
+- The machine crashed while `npm test -- ascii` was running. Cause found on restart: a
+  find-and-replace had turned the `page.goto()` inside the test helper `openLab()` into a
+  call to `openLab()` itself, so every ASCII test recursed forever inside `toPass()` in six
+  workers. An earlier run with the same bug had already hung for 10 minutes.
+- Fixed the helper; ASCII tests now run in one worker (`test.describe.configure({ mode:
+  'default' })`), lab navigation has its own 10 s timeout, and the suite has a 10-minute
+  `globalTimeout`. Nothing was lost: Stages 0-3 were committed; Stage 4 files were intact.
+
+## Stage 4: ASCII lab (done)
+- Plan: docs/plans/stage-4.md (docs read first: install, lifecycle, media, conversion,
+  grid, colors, ramps, loading, framework integration, plus the bundled .d.ts files).
+- Built: textmode.js 0.18.2 (exact). src/components/ascii/: AsciiImage.astro (props src,
+  characters, cellSize, background, normalize, alt), raster.ts (prepared image with
+  auto-levels; Canvas 2D fallback), runtime.ts (lazy IntersectionObserver start, dynamic
+  import of textmode.js, live/static modes, reduced-motion and no-WebGL2 fallback incl.
+  runtime switching, ResizeObserver, release on pagehide/astro:before-swap, ascii:configure
+  events). Dev-only /lab/ascii (src/pages/lab/_ascii.astro, injected only by `astro dev`)
+  with cell-size slider, character-set box and renderer switch. Brighter sample covers.
+- Tests: tests/e2e/ascii.spec.ts (8, Chrome with GPU, one worker): live colored output on
+  every cover with a clean console; reduced motion -> static and textmode.js never
+  requested; runtime reduced-motion switch; no WebGL2 -> static; lazy start; pagehide
+  loses every WebGL context; lab controls change the output; no /lab in the build.
+- Checks: build OK; astro check 0/0/0 (test-results/ now excluded from tsconfig);
+  `npm test` 40 passed; lab screenshots at 375/1280, live and reduced motion, reviewed.
+- Found and fixed: textmode's setup() resolves before its callback runs (wrapped in an
+  abortable promise); static and live glyph mapping aligned with textmode's shader
+  (Rec. 601 luma, round(b*(n-1))); fallback glyphs made heavier to match ink; an image
+  load interrupted by pagehide no longer leaves a box idle; the test-helper recursion that
+  crashed the machine (see "Crash during Stage 4").
+- Owner check: whether the look matches Image2ASCII output (docs/TODO-for-me.md).

@@ -4,6 +4,21 @@ import { defineConfig, fontProviders } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 import { SITE } from './src/lib/site.ts';
 
+/**
+ * Dev-only pages: routed by `astro dev`, never built. The page files start with
+ * "_" so Astro's file-based routing ignores them.
+ * @type {import('astro').AstroIntegration}
+ */
+const devOnlyPages = {
+  name: 'dev-only-pages',
+  hooks: {
+    'astro:config:setup': ({ command, injectRoute }) => {
+      if (command !== 'dev') return;
+      injectRoute({ pattern: '/lab/ascii', entrypoint: './src/pages/lab/_ascii.astro' });
+    },
+  },
+};
+
 // https://astro.build/config
 export default defineConfig({
   // GitHub Pages user site (repo named <username>.github.io), so no `base` is needed.
@@ -28,7 +43,10 @@ export default defineConfig({
       fallbacks: ['Georgia', 'serif'],
     },
   ],
+  integrations: [devOnlyPages],
   vite: {
     plugins: [tailwindcss()],
+    // Pre-bundle so the dev server does not re-optimize (and reload) on first use.
+    optimizeDeps: { include: ['textmode.js'] },
   },
 });

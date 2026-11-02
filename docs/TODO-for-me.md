@@ -37,3 +37,10 @@ Search for "Placeholder" in src/content/ to find every spot.
 - [ ] More projects you could add from your resume and GitHub: Peak Focus (team repo
       hetavigheewala/CS472-Gamified-Productivity), the AlphaFold data pipeline
       (Alpha-Fold-LBNL), NREL energy forecasting (ML-NREL), gov_job_finder.
+
+## ASCII (Stage 4)
+- [ ] Open the lab (`npm run dev`, then http://localhost:4321/lab/ascii) and confirm the
+      colored ASCII looks like your Image2ASCII output. Tune the defaults in
+      src/components/ascii/AsciiImage.astro (`characters`, `cellSize`, `normalize`).
+- [ ] The WebGL tests (tests/e2e/ascii.spec.ts) use your installed Google Chrome, because
+      Playwright's own headless Chromium has only software WebGL.

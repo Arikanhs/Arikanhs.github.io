@@ -17,10 +17,10 @@ const covers = {
   image2ascii: (ctx, w, h, rand) => {
     const horizon = h * 0.62;
     const sky = ctx.createLinearGradient(0, 0, 0, horizon);
-    sky.addColorStop(0, '#0b1026');
-    sky.addColorStop(0.45, '#3b1d4a');
-    sky.addColorStop(0.75, '#c2452d');
-    sky.addColorStop(1, '#ffb347');
+    sky.addColorStop(0, '#1d2b64');
+    sky.addColorStop(0.45, '#7a3474');
+    sky.addColorStop(0.75, '#ea5a3a');
+    sky.addColorStop(1, '#ffc663');
     ctx.fillStyle = sky;
     ctx.fillRect(0, 0, w, horizon);
 
@@ -47,9 +47,9 @@ const covers = {
     for (let b = 0; b < 6; b += 1) ctx.fillRect(sunX - 160, sunY + 30 + b * 22, 320, 4 + b * 2);
 
     const ridges = [
-      { base: horizon - 120, amp: 90, color: '#5a2a52' },
-      { base: horizon - 60, amp: 70, color: '#36213f' },
-      { base: horizon - 10, amp: 55, color: '#1a1530' },
+      { base: horizon - 120, amp: 90, color: '#9c4a7c' },
+      { base: horizon - 60, amp: 70, color: '#633270' },
+      { base: horizon - 10, amp: 55, color: '#352552' },
     ];
     for (const ridge of ridges) {
       ctx.fillStyle = ridge.color;
@@ -65,8 +65,8 @@ const covers = {
     }
 
     const water = ctx.createLinearGradient(0, horizon, 0, h);
-    water.addColorStop(0, '#2a1838');
-    water.addColorStop(1, '#070812');
+    water.addColorStop(0, '#53305f');
+    water.addColorStop(1, '#141028');
     ctx.fillStyle = water;
     ctx.fillRect(0, horizon, w, h - horizon);
     for (let i = 0; i < 46; i += 1) {
@@ -93,7 +93,7 @@ const covers = {
       for (let c = 0; c < cols; c += 1) {
         const optimum = Math.exp(-(((c - 15) / 6) ** 2) - ((r - 6) / 5) ** 2);
         const ridge = 0.25 * Math.sin(c / 3 + r / 5) + 0.25;
-        ctx.fillStyle = color(0.15 + optimum * 0.85 + ridge * 0.25 + (rand() - 0.5) * 0.12);
+        ctx.fillStyle = color(0.25 + optimum * 0.8 + ridge * 0.25 + (rand() - 0.5) * 0.12);
         ctx.fillRect(c * cw, r * ch, cw - 2, ch - 2);
       }
     }

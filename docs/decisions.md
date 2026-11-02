@@ -91,3 +91,29 @@ Each entry says what was chosen and why.
   shaped for ASCII (big shapes, strong brightness ramps, saturated color).
 - **`astro sync` in schema tests.** It runs the same content validation as `astro build`
   in about 2 s on a temporary copy, so the tests never touch the real content files.
+
+## Stage 4
+
+- **textmode.js pinned to exactly 0.18.2** (`--save-exact`), the latest stable release
+  (a 1.0.0 beta exists; not used). It is loaded with a dynamic `import()` only when a
+  box nears the viewport and only if WebGL2 is allowed: about 64 kB gzipped, in its own chunk.
+- **Default font kept.** textmode.js's bundled UrsaFont (CC0 pixel font, square cells)
+  reads as "terminal output" and costs nothing extra. The Canvas 2D fallback draws
+  IBM Plex Mono 600 at 1.25x the cell so its glyph "ink" is close to the pixel font.
+- **One prepared image feeds both renderers.** Each cover is downscaled to at most 480 px
+  and auto-levelled (2nd-98th brightness percentile stretched to the full range), then
+  handed to textmode.js as an object URL and to the fallback as a canvas. Both renderers
+  use Rec. 601 luma and `round(brightness * (n - 1))`, textmode's own mapping (read from its
+  shader), so the static and live versions pick the same characters.
+- **Software WebGL counts as "no WebGL"** (`failIfMajorPerformanceCaveat`): a CPU-rendered
+  WebGL canvas is slower than the static fallback and logs GPU-stall warnings.
+- **Render on demand.** `noLoop()` + `redraw()` on start, resize and config changes; no
+  60 fps loop for a still image.
+- **HiDPI by hand.** `pixelDensity` is ignored for an external canvas, so the backing store
+  is CSS size x devicePixelRatio (capped at 2) and `fontSize` = cell size x dpr.
+- **Context release** on `pagehide`, `astro:before-swap` and root removal via
+  `destroy()`, which calls `WEBGL_lose_context.loseContext()` for contexts it created.
+- **Dev-only lab** at /lab/ascii: `src/pages/lab/_ascii.astro` (underscore: never routed)
+  injected by a small integration only when `command === 'dev'`.
+- **WebGL tests run in the installed Google Chrome** (`chrome-gpu` Playwright project,
+  one worker): Playwright's headless shell only has SwiftShader software WebGL.

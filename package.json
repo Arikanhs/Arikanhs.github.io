@@ -18,7 +18,8 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
     "astro": "^7.4.4",
-    "tailwindcss": "^4.3.3"
+    "tailwindcss": "^4.3.3",
+    "textmode.js": "0.18.2"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
