@@ -11,10 +11,21 @@ interface Props {
   /** Page title; the site name is appended. Omit it on the home page. */
   title?: string;
   description?: string;
+  /** Social preview image (path in public/ or absolute URL). */
+  image?: string;
+  /** "article" for blog posts, with their publication date. */
+  type?: 'website' | 'article';
+  published?: Date;
+  /** Keep the page out of search results (the 404 page). */
+  noindex?: boolean;
 }
 
-const { title, description = SITE.description } = Astro.props;
+const { title, description = SITE.description, image = '/og.png', type = 'website', published, noindex = false } =
+  Astro.props;
 const fullTitle = title ? `${title} | ${SITE.name}` : SITE.name;
+const site = Astro.site ?? new URL(SITE.url);
+const canonical = new URL(Astro.url.pathname, site).href;
+const imageUrl = new URL(image, site).href;
 ---
 
 <!doctype html>
@@ -32,10 +43,25 @@ const fullTitle = title ? `${title} | ${SITE.name}` : SITE.name;
     </script>
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
+    {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
+    <meta property="og:type" content={type} />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:title" content={title ?? SITE.name} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={imageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={`${SITE.name}: ${SITE.intro}`} />
+    {published && <meta property="article:published_time" content={published.toISOString()} />}
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="color-scheme" content="dark" />
     <meta name="theme-color" content="#0d0c0b" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
     <link rel="alternate" type="application/rss+xml" title={`${SITE.name}: blog`} href="/rss.xml" />
     <Font
       cssVariable="--font-plex-mono"
@@ -57,10 +83,15 @@ const fullTitle = title ? `${title} | ${SITE.name}` : SITE.name;
     <SiteFooter />
     <CommandPalette />
     <script>
-      // Scroll reveal: [data-reveal] elements fade up once as they enter the
-      // viewport. The hidden start state only applies with JS and motion allowed.
+      // Scroll reveal: [data-reveal] elements below the fold fade up once as they
+      // enter the viewport. Anything already on screen is never hidden, so the
+      // first paint is complete. The hidden state needs JS and motion allowed.
       function initReveal() {
-        const targets = document.querySelectorAll('[data-reveal]:not(.is-revealed)');
+        const targets = [...document.querySelectorAll('[data-reveal]:not(.is-revealed)')].filter((el) => {
+          if (el.getBoundingClientRect().top < window.innerHeight) return false;
+          el.classList.add('reveal-pending');
+          return true;
+        });
         const observer = new IntersectionObserver(
           (entries) => {
             for (const entry of entries) {

@@ -1,0 +1,11 @@
+{
+  "name": "Hasan Serdar Arikan",
+  "short_name": "Hasan Arikan",
+  "icons": [
+    { "src": "/icon-192.png", "type": "image/png", "sizes": "192x192" },
+    { "src": "/icon-512.png", "type": "image/png", "sizes": "512x512" }
+  ],
+  "theme_color": "#0d0c0b",
+  "background_color": "#0d0c0b",
+  "display": "browser"
+}

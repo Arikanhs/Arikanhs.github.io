@@ -3,7 +3,7 @@
 // while it is on screen, and WebGL2 is available and motion is allowed, it
 // upgrades to a live textmode.js instance (at most MAX_LIVE at a time).
 // textmode.js is only downloaded at that point.
-import type { TextmodeImage, Textmodifier } from 'textmode.js';
+import type { TextmodeTexture, Textmodifier } from 'textmode.js';
 import { drawStaticAscii, prepareImage, sampleCells, type PreparedImage } from './raster';
 
 export type AsciiState = 'idle' | 'static' | 'live';
@@ -21,7 +21,7 @@ interface Config {
 interface LiveInstance {
   tm: Textmodifier;
   canvas: HTMLCanvasElement;
-  source?: TextmodeImage;
+  source?: TextmodeTexture;
   dpr: number;
   /** Rejects the pending setup when the instance is released early. */
   abort?: () => void;
@@ -264,12 +264,12 @@ class AsciiController {
 
     // setup() only registers the callback; it runs once the renderer is ready.
     // Errors are caught here because textmode.js would paint its own error screen.
-    const url = prepared.url;
-    live.source = await new Promise<TextmodeImage>((resolve, reject) => {
+    // The prepared canvas is used directly as a texture (no image re-encoding).
+    live.source = await new Promise<TextmodeTexture>((resolve, reject) => {
       live.abort = () => reject(new DOMException('AsciiImage released', 'AbortError'));
       void tm.setup(async () => {
         try {
-          const source = await tm.loadImage(url);
+          const source = tm.createTexture(prepared.canvas);
           source
             .characters(this.config.characters)
             .charColorMode('sampled')

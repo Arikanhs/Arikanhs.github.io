@@ -8,6 +8,8 @@ import remarkMath from 'remark-math';
 import { phosphorCodeTheme } from './src/lib/code-theme.ts';
 import { SITE } from './src/lib/site.ts';
 
+import sitemap from '@astrojs/sitemap';
+
 /**
  * Dev-only pages: routed by `astro dev`, never built. The page files start with
  * "_" so Astro's file-based routing ignores them.
@@ -48,7 +50,7 @@ export default defineConfig({
       fallbacks: ['Georgia', 'serif'],
     },
   ],
-  integrations: [devOnlyPages],
+  integrations: [devOnlyPages, sitemap()],
   markdown: {
     // The unified (remark/rehype) processor instead of Astro 7's default Sätteri,
     // for remark-math + rehype-katex: $inline$ and $$display$$ math rendered to

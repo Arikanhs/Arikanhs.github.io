@@ -1,0 +1,127 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { NAV } from '../lib/site';
+---
+
+<BaseLayout title="Page not found" description="This page does not exist." noindex>
+  <div class="container-page">
+    <section class="not-found" aria-labelledby="nf-title">
+      <div class="terminal">
+        <div class="bar" aria-hidden="true"><span>hasan@arikan: ~</span><span>zsh</span></div>
+        <div class="screen">
+          <p class="line">
+            <span class="ps1" aria-hidden="true">~ $</span>
+            <span>cd <span data-path>this-page</span></span>
+          </p>
+          <p class="error">cd: no such file or directory</p>
+          <h1 id="nf-title" class="title">404: page not found</h1>
+          <p class="hint">
+            The page may have moved, or the link may be mistyped. Try one of these, or press
+            <kbd>Ctrl</kbd> <kbd>K</kbd> to search.
+          </p>
+          <p class="line ls">
+            <span class="ps1" aria-hidden="true">~ $</span> ls
+          </p>
+          <ul class="dirs">
+            {
+              NAV.map((item) => (
+                <li>
+                  <a class="link" href={item.href}>
+                    {item.href === '/' ? '~/' : `${item.label.toLowerCase()}/`}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+          <div class="line" aria-hidden="true"><span class="ps1">~ $</span><span class="caret"></span></div>
+        </div>
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<script>
+  function showPath() {
+    const target = document.querySelector<HTMLElement>('[data-path]');
+    if (target) target.textContent = decodeURIComponent(location.pathname);
+  }
+  document.addEventListener('astro:page-load', showPath);
+</script>
+
+<style>
+  .not-found {
+    padding-block: clamp(2.5rem, 1.5rem + 4vw, 5rem);
+  }
+
+  .terminal {
+    max-width: 48rem;
+    border: 1px solid var(--color-line);
+    border-radius: 4px;
+    background-color: var(--color-surface);
+    font-family: var(--font-mono);
+  }
+
+  .bar {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.625rem 1rem;
+    border-bottom: 1px solid var(--color-line);
+    background-color: var(--color-surface-2);
+    color: var(--color-muted);
+    font-size: 0.75rem;
+  }
+
+  .screen {
+    padding: clamp(1.25rem, 0.75rem + 2vw, 2.25rem);
+    line-height: 1.6;
+  }
+
+  .line {
+    display: flex;
+    gap: 0.75ch;
+    overflow-wrap: anywhere;
+  }
+
+  .ps1 {
+    color: var(--color-accent);
+  }
+
+  .error {
+    color: var(--color-muted);
+  }
+
+  .title {
+    margin-top: 1.5rem;
+    font-size: clamp(1.75rem, 1.2rem + 2.4vw, 2.75rem);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  .hint {
+    margin-top: 1rem;
+    max-width: 52ch;
+    font-family: var(--font-serif);
+    font-size: 1.0625rem;
+    color: var(--color-muted);
+  }
+
+  kbd {
+    padding: 0 0.3rem;
+    border: 1px solid var(--color-line);
+    border-radius: 2px;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+
+  .ls {
+    margin-top: 1.5rem;
+  }
+
+  .dirs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 2ch;
+    margin-block: 0.25rem 1rem;
+  }
+</style>

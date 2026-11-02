@@ -19,7 +19,7 @@ const toc = headings.filter((heading) => heading.depth === 2 || heading.depth ==
 const showToc = toc.length >= 3;
 ---
 
-<BaseLayout title={title} description={description}>
+<BaseLayout title={title} description={description} type="article" published={date}>
   <div class="container-page">
     <article class="post" aria-labelledby="post-title">
       <PageHeader title={title} lede={description} path={`~/blog/${post.id}`}>

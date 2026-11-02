@@ -7,8 +7,6 @@ export interface PreparedImage {
   canvas: HTMLCanvasElement;
   width: number;
   height: number;
-  /** Object URL of the prepared pixels, for textmode.js's loadImage(). */
-  url: string;
 }
 
 export interface StaticOptions {
@@ -52,11 +50,7 @@ async function load(src: string, normalize: boolean): Promise<PreparedImage> {
   ctx.imageSmoothingQuality = 'high';
   ctx.drawImage(img, 0, 0, width, height);
   if (normalize) stretchLevels(ctx, width, height);
-
-  const blob = await new Promise<Blob>((resolve, reject) =>
-    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('AsciiImage: could not encode image'))), 'image/png'),
-  );
-  return { canvas, width, height, url: URL.createObjectURL(blob) };
+  return { canvas, width, height };
 }
 
 /** Rec. 601 luma, the formula textmode.js's brightness conversion uses. */
@@ -94,11 +88,6 @@ function stretchLevels(ctx: CanvasRenderingContext2D, width: number, height: num
   ctx.putImageData(image, 0, 0);
 }
 
-/** Grid size for a box, shared by both renderers. */
-export function gridFor(width: number, height: number, cellSize: number) {
-  return { cols: Math.max(1, Math.ceil(width / cellSize)), rows: Math.max(1, Math.ceil(height / cellSize)) };
-}
-
 /**
  * One RGBA pixel per grid cell: the prepared image cover-cropped to the grid's
  * aspect ratio, with the browser averaging each cell's pixels as it scales down.
@@ -118,9 +107,55 @@ export function sampleCells(image: PreparedImage, cols: number, rows: number): U
   return ctx.getImageData(0, 0, cols, rows).data;
 }
 
+const masks = new Map<string, Map<string, Uint8ClampedArray>>();
+
+/**
+ * Each glyph of the ramp rasterized once as an alpha mask of cellPx x cellPx.
+ * Semibold at 1.25x the cell keeps glyph "ink" close to textmode's pixel font
+ * (IBM Plex Mono advance is 0.6em and caps 0.7em, so glyphs still fit the cell).
+ */
+function glyphMasks(chars: string[], cellPx: number, fontFamily: string) {
+  const key = `${cellPx}|${fontFamily}|${chars.join('')}`;
+  let set = masks.get(key);
+  if (set) return set;
+  set = new Map();
+  const canvas = document.createElement('canvas');
+  canvas.width = cellPx;
+  canvas.height = cellPx;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  if (ctx) {
+    ctx.font = `600 ${cellPx * 1.25}px ${fontFamily}`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#fff';
+    for (const char of new Set(chars)) {
+      ctx.clearRect(0, 0, cellPx, cellPx);
+      ctx.fillText(char, cellPx / 2, cellPx / 2);
+      const rgba = ctx.getImageData(0, 0, cellPx, cellPx).data;
+      const alpha = new Uint8ClampedArray(cellPx * cellPx);
+      for (let i = 0; i < alpha.length; i += 1) alpha[i] = rgba[i * 4 + 3];
+      set.set(char, alpha);
+    }
+  }
+  masks.set(key, set);
+  return set;
+}
+
+/** Any CSS color as [r, g, b]. */
+function parseColor(color: string): [number, number, number] {
+  const ctx = document.createElement('canvas').getContext('2d');
+  if (!ctx) return [0, 0, 0];
+  ctx.fillStyle = color;
+  ctx.fillRect(0, 0, 1, 1);
+  const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+  return [r, g, b];
+}
+
 /**
  * The fallback: cover-crops the prepared image to one pixel per cell, maps each
- * cell's brightness to a character and fills it with the cell's color.
+ * cell's brightness to a character and fills it with the cell's color. Glyphs
+ * are pre-rasterized masks blended into one ImageData, so the cost is a single
+ * pass over the pixels instead of thousands of fillText calls.
  */
 export function drawStaticAscii(
   canvas: HTMLCanvasElement,
@@ -130,36 +165,56 @@ export function drawStaticAscii(
   height: number,
   dpr: number,
 ) {
-  const { cellSize, background, fontFamily } = options;
   const chars = Array.from(options.characters);
-  const { cols, rows } = gridFor(width, height, cellSize);
+  const W = Math.max(1, Math.round(width * dpr));
+  const H = Math.max(1, Math.round(height * dpr));
+  const cellPx = Math.max(2, Math.round(options.cellSize * dpr));
+  const cols = Math.ceil(W / cellPx);
+  const rows = Math.ceil(H / cellPx);
+  canvas.width = W;
+  canvas.height = H;
   const ctx = canvas.getContext('2d');
   if (!ctx) return { cols, rows };
-  const cells = sampleCells(image, cols, rows);
 
-  canvas.width = Math.round(width * dpr);
-  canvas.height = Math.round(height * dpr);
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.fillStyle = background;
-  ctx.fillRect(0, 0, width, height);
-  // Semibold at 1.25x the cell keeps glyph "ink" close to textmode's pixel font
-  // (IBM Plex Mono advance is 0.6em and caps 0.7em, so glyphs still fit the cell).
-  ctx.font = `600 ${cellSize * 1.25}px ${fontFamily}`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
+  const cells = sampleCells(image, cols, rows);
+  const glyphs = glyphMasks(chars, cellPx, options.fontFamily);
+  const [bgR, bgG, bgB] = parseColor(options.background);
+  const out = ctx.createImageData(W, H);
+  const px = out.data;
+  for (let i = 0; i < px.length; i += 4) {
+    px[i] = bgR;
+    px[i + 1] = bgG;
+    px[i + 2] = bgB;
+    px[i + 3] = 255;
+  }
 
   // Centre the grid; the last row and column may be cut off by the box.
-  const x0 = (width - cols * cellSize) / 2 + cellSize / 2;
-  const y0 = (height - rows * cellSize) / 2 + cellSize / 2;
+  const ox = Math.floor((W - cols * cellPx) / 2);
+  const oy = Math.floor((H - rows * cellPx) / 2);
   for (let row = 0; row < rows; row += 1) {
     for (let col = 0; col < cols; col += 1) {
-      const i = (row * cols + col) * 4;
+      const c = (row * cols + col) * 4;
+      const [r, g, b] = [cells[c], cells[c + 1], cells[c + 2]];
       // Same mapping as textmode.js: round(brightness * (n - 1)).
-      const char = chars[Math.round((luma(cells[i], cells[i + 1], cells[i + 2]) / 255) * (chars.length - 1))];
-      if (char === ' ') continue;
-      ctx.fillStyle = `rgb(${cells[i]} ${cells[i + 1]} ${cells[i + 2]})`;
-      ctx.fillText(char, x0 + col * cellSize, y0 + row * cellSize);
+      const mask = glyphs.get(chars[Math.round((luma(r, g, b) / 255) * (chars.length - 1))]);
+      if (!mask) continue;
+      for (let my = 0; my < cellPx; my += 1) {
+        const y = oy + row * cellPx + my;
+        if (y < 0 || y >= H) continue;
+        for (let mx = 0; mx < cellPx; mx += 1) {
+          const a = mask[my * cellPx + mx];
+          if (a === 0) continue;
+          const x = ox + col * cellPx + mx;
+          if (x < 0 || x >= W) continue;
+          const i = (y * W + x) * 4;
+          const t = a / 255;
+          px[i] = bgR + (r - bgR) * t;
+          px[i + 1] = bgG + (g - bgG) * t;
+          px[i + 2] = bgB + (b - bgB) * t;
+        }
+      }
     }
   }
+  ctx.putImageData(out, 0, 0);
   return { cols, rows };
 }

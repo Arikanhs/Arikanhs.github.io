@@ -6,7 +6,7 @@
 // Reduced motion, no JS or a repeat visit show the final state immediately.
 import { SITE } from '../../lib/site';
 
-const steps = { whoami: 300, name: 900, focus: 1300, status: 1500, links: 1700, prompt: 1950 };
+const steps = { whoami: 150, name: 520, focus: 760, status: 890, links: 1020, prompt: 1180 };
 const delay = (ms: number) => `--d: ${ms}ms`;
 ---
 
@@ -174,7 +174,7 @@ const delay = (ms: number) => `--d: ${ms}ms`;
     width: 0;
     overflow: hidden;
     vertical-align: bottom;
-    animation: type calc(var(--n) * 75ms) steps(var(--n), end) var(--d) forwards;
+    animation: type calc(var(--n) * 50ms) steps(var(--n), end) var(--d) forwards;
   }
 
   .is-typing .out {
@@ -183,7 +183,7 @@ const delay = (ms: number) => `--d: ${ms}ms`;
   }
 
   .is-typing .caret {
-    animation-delay: 1950ms;
+    animation-delay: 1180ms;
   }
 
   @keyframes type {
