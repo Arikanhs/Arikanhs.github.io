@@ -179,3 +179,18 @@ Each entry says what was chosen and why.
   script; the toast doubles as the screen-reader announcement (role="status").
 - **Filter chips are buttons with aria-pressed** in a labelled group; empty year sections
   hide too.
+
+## Stage 10
+
+- **Dependencies added** (reasons): `remark-math` + `rehype-katex` render math at build
+  time (no client JS); `katex` provides the stylesheet and fonts, imported only by post
+  pages; `@astrojs/rss` builds the feed; `@astrojs/markdown-remark` is Astro's unified
+  processor, needed because Astro 7's default (Sätteri) has no math support and does not
+  run remark/rehype plugins. `overrides.katex` forces the nested copies to the patched
+  release (advisory GHSA-238p-pmpm-9mq7, low).
+- **Code theme in the palette**: amber keywords, warm sand strings, neutral everything
+  else, so code blocks do not introduce new hues.
+- **TOC threshold: three section headings.** Short posts get none.
+- **Reading time** counts every word at 200 per minute, including code (slower to read).
+- **A draft sample post** shows that drafts work: visible in `npm run dev`, absent from the
+  build and the feed.

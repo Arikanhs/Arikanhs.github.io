@@ -1,10 +1,25 @@
 ---
 import PageHeader from '../../components/ui/PageHeader.astro';
+import PostList from '../../components/ui/PostList.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPosts } from '../../lib/content';
+
+const posts = await getPosts();
 ---
 
-<BaseLayout title="Blog">
+<BaseLayout title="Blog" description="Notes on machine learning, security and the systems underneath them.">
   <div class="container-page">
-    <PageHeader title="Blog" lede="Notes on machine learning, security and the systems underneath them." />
+    <PageHeader title="Blog" lede="Notes on machine learning, security and the systems underneath them.">
+      <p class="feed"><a class="link" href="/rss.xml">RSS feed</a></p>
+    </PageHeader>
+    <PostList posts={posts} />
   </div>
 </BaseLayout>
+
+<style>
+  .feed {
+    margin-top: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+  }
+</style>

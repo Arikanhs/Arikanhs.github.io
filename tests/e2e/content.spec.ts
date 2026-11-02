@@ -4,6 +4,10 @@ import path from 'node:path';
 import { expect, test } from '@playwright/test';
 
 const ROOT = path.resolve(import.meta.dirname, '../..');
+
+// In order, one worker: the site copies share node_modules (symlinked), and
+// parallel `astro sync` runs would race on the same Vite cache folder.
+test.describe.configure({ mode: 'default' });
 const projectFiles = fs
   .readdirSync(path.join(ROOT, 'src/content/projects'))
   .filter((file) => file.endsWith('.md'));

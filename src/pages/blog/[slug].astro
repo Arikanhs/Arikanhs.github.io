@@ -1,0 +1,198 @@
+---
+import 'katex/dist/katex.min.css';
+import { render } from 'astro:content';
+import PageHeader from '../../components/ui/PageHeader.astro';
+import TagList from '../../components/ui/TagList.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPosts, readingTime } from '../../lib/content';
+import { formatDate } from '../../lib/format';
+
+export async function getStaticPaths() {
+  return (await getPosts()).map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { title, description, date, tags } = post.data;
+const { Content, headings } = await render(post);
+// A table of contents for long posts: three or more section headings.
+const toc = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
+const showToc = toc.length >= 3;
+---
+
+<BaseLayout title={title} description={description}>
+  <div class="container-page">
+    <article class="post" aria-labelledby="post-title">
+      <PageHeader title={title} lede={description} path={`~/blog/${post.id}`}>
+        <p class="meta">
+          <time datetime={date.toISOString().slice(0, 10)}>{formatDate(date)}</time>
+          <span aria-hidden="true"> · </span>{readingTime(post.body)} min read
+        </p>
+        <TagList tags={tags} link class="tags" />
+      </PageHeader>
+
+      <div class:list={['layout', { 'has-toc': showToc }]}>
+        {
+          showToc && (
+            <nav class="toc" aria-labelledby="toc-title">
+              <h2 id="toc-title" class="toc-title">
+                On this page
+              </h2>
+              <ol>
+                {toc.map((heading) => (
+                  <li class={`depth-${heading.depth}`}>
+                    <a href={`#${heading.slug}`}>{heading.text}</a>
+                  </li>
+                ))}
+              </ol>
+            </nav>
+          )
+        }
+        <div class="prose body">
+          <Content />
+        </div>
+      </div>
+
+      <p class="back"><a class="link" href="/blog/"><span aria-hidden="true">← </span>All posts</a></p>
+    </article>
+  </div>
+  <div class="sr-only" role="status" aria-live="polite" data-code-status></div>
+</BaseLayout>
+
+<script>
+  // A "Copy" button on every code block.
+  function addCopyButtons() {
+    const status = document.querySelector<HTMLElement>('[data-code-status]');
+    for (const pre of document.querySelectorAll<HTMLPreElement>('.post .body pre')) {
+      if (pre.parentElement?.classList.contains('code-block')) continue;
+      const wrapper = document.createElement('div');
+      wrapper.className = 'code-block';
+      pre.replaceWith(wrapper);
+      wrapper.append(pre);
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'copy-code';
+      button.textContent = 'Copy';
+      button.setAttribute('aria-label', 'Copy code');
+      button.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(pre.querySelector('code')?.innerText ?? pre.innerText);
+          button.textContent = 'Copied';
+          if (status) status.textContent = 'Code copied to the clipboard';
+        } catch {
+          button.textContent = 'Failed';
+          if (status) status.textContent = 'Could not copy the code';
+        }
+        window.setTimeout(() => (button.textContent = 'Copy'), 1600);
+      });
+      wrapper.append(button);
+    }
+  }
+
+  document.addEventListener('astro:page-load', addCopyButtons);
+</script>
+
+<style>
+  .meta {
+    margin-top: 1.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    color: var(--color-muted);
+  }
+
+  .post :global(.tags) {
+    margin-top: 0.75rem;
+  }
+
+  .layout {
+    display: grid;
+    gap: 2.5rem;
+  }
+
+  @media (min-width: 64rem) {
+    .layout.has-toc {
+      grid-template-columns: minmax(0, 1fr) 15rem;
+    }
+
+    .toc {
+      position: sticky;
+      top: calc(var(--header-h) + 1.5rem);
+      order: 2;
+      align-self: start;
+    }
+  }
+
+  /* About 70 characters per line in the body serif. */
+  .body {
+    min-width: 0;
+    max-width: 64ch;
+  }
+
+  .toc {
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--color-line);
+    background-color: var(--color-surface);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+
+  .toc-title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-muted);
+  }
+
+  .toc ol {
+    display: grid;
+    gap: 0.4rem;
+    margin-top: 0.75rem;
+  }
+
+  .toc .depth-3 {
+    padding-left: 1rem;
+  }
+
+  .toc a {
+    color: var(--color-fg);
+    text-decoration: none;
+  }
+
+  .toc a:hover {
+    color: var(--color-accent-strong);
+    text-decoration: underline;
+  }
+
+  /* Wide formulas scroll inside the column instead of widening the page. */
+  .body :global(.katex-display) {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-block: 0.25rem;
+  }
+
+  .body :global(.code-block) {
+    position: relative;
+  }
+
+  .body :global(.copy-code) {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.25rem 0.625rem;
+    border: 1px solid var(--color-line);
+    border-radius: 2px;
+    background-color: var(--color-surface-2);
+    color: var(--color-fg);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    cursor: pointer;
+  }
+
+  .body :global(.copy-code:hover) {
+    border-color: var(--color-accent);
+  }
+
+  .back {
+    margin-top: 3rem;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+  }
+</style>

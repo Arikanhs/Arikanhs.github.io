@@ -1,7 +1,11 @@
 // @ts-check
 import { defineConfig, fontProviders } from 'astro/config';
 
+import { unified } from '@astrojs/markdown-remark';
 import tailwindcss from '@tailwindcss/vite';
+import rehypeKatex from 'rehype-katex';
+import remarkMath from 'remark-math';
+import { phosphorCodeTheme } from './src/lib/code-theme.ts';
 import { SITE } from './src/lib/site.ts';
 
 /**
@@ -45,6 +49,13 @@ export default defineConfig({
     },
   ],
   integrations: [devOnlyPages],
+  markdown: {
+    // The unified (remark/rehype) processor instead of Astro 7's default Sätteri,
+    // for remark-math + rehype-katex: $inline$ and $$display$$ math rendered to
+    // HTML + MathML at build time.
+    processor: unified({ remarkPlugins: [remarkMath], rehypePlugins: [rehypeKatex] }),
+    shikiConfig: { theme: phosphorCodeTheme },
+  },
   vite: {
     plugins: [tailwindcss()],
     // Pre-bundle so the dev server does not re-optimize (and reload) on first use.

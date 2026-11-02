@@ -12,3 +12,8 @@ export function formatMonth(value: string): string {
   return month ? `${MONTHS[Number(month) - 1]} ${year}` : year;
 }
 
+
+/** "Oct 28, 2026" (dates are calendar dates, so format them in UTC). */
+export function formatDate(date: Date): string {
+  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
+}

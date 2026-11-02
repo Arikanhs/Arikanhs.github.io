@@ -13,7 +13,7 @@ Autonomous build run started 2026-11-01. Instructions: docs/run-instructions.md
    number from private/ at runtime; never write the number into any file).
 
 ## Current status
-- Stage 9 committed. Next: Stage 10 (Blog).
+- Stage 10 committed. Next: Stage 11 (Command palette and motion polish).
 
 ## Setup (2026-11-01)
 - Keep-awake: `caffeinate -dims` started in the background, **PID 9205** (restarted after
@@ -232,3 +232,23 @@ Autonomous build run started 2026-11-01. Instructions: docs/run-instructions.md
 - Checks: build OK; astro check 0/0/0; `npm test` 80 passed; screenshots at 1280/375
   reviewed (filtered, BibTeX open, toast).
 - Review fix: an open BibTeX block widened the page at 375px (grid item min-width).
+
+## Stage 10: Blog (done)
+- Built: /blog (newest first: date, reading time, linked tags; drafts only in dev via
+  getPosts()), /blog/[slug] (PageHeader with date, reading time, tags; ~70 characters per
+  line; sticky "On this page" TOC when a post has 3+ h2/h3; Shiki highlighting with a
+  custom palette theme (src/lib/code-theme.ts); Copy button on every code block with a
+  status announcement; KaTeX math with MathML; wide formulas scroll in place),
+  /blog/tags/[tag]/, /rss.xml (@astrojs/rss) plus an <link rel="alternate">. A draft
+  sample post demonstrates draft hiding.
+- Dependencies: remark-math, rehype-katex, katex (CSS/fonts), @astrojs/rss,
+  @astrojs/markdown-remark (Astro 7's default Markdown processor, Sätteri, does not run
+  remark/rehype plugins). npm `overrides` pins nested KaTeX to the patched 0.19.1
+  (npm audit: 0 vulnerabilities).
+- Tests: tests/e2e/blog.spec.ts (order and metadata; drafts absent from dist and RSS,
+  present on the dev server; TOC links land on headings, no TOC on short posts; code
+  highlighted and copy works; KaTeX + MathML; 60-80 characters per line; tag pages;
+  RSS content-type and items; no overflow at 375px).
+- Checks: build OK (14 pages); astro check 0/0/0; `npm test` 107 passed; screenshots of a
+  post at 1280/375 and of /blog reviewed.
+- Fixed: schema tests raced on a shared Vite cache when run in parallel (now in order).

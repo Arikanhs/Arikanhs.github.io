@@ -1,0 +1,37 @@
+---
+import PageHeader from '../../../components/ui/PageHeader.astro';
+import PostList from '../../../components/ui/PostList.astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getPosts, tagSlug } from '../../../lib/content';
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  const tags = new Map<string, string>();
+  for (const post of posts) for (const tag of post.data.tags) tags.set(tagSlug(tag), tag);
+  return [...tags].map(([slug, tag]) => ({
+    params: { tag: slug },
+    props: { tag, posts: posts.filter((post) => post.data.tags.includes(tag)) },
+  }));
+}
+
+const { tag, posts } = Astro.props;
+---
+
+<BaseLayout title={`Posts tagged “${tag}”`} description={`Blog posts about ${tag}.`}>
+  <div class="container-page">
+    <PageHeader title={`#${tag}`} lede={`${posts.length} ${posts.length === 1 ? 'post' : 'posts'} tagged “${tag}”.`}>
+      <p class="back">
+        <a class="link" href="/blog/"><span aria-hidden="true">← </span>All posts</a>
+      </p>
+    </PageHeader>
+    <PostList posts={posts} />
+  </div>
+</BaseLayout>
+
+<style>
+  .back {
+    margin-top: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+  }
+</style>

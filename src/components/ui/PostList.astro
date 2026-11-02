@@ -1,0 +1,102 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { readingTime } from '../../lib/content';
+import { formatDate } from '../../lib/format';
+import TagList from './TagList.astro';
+
+interface Props {
+  posts: CollectionEntry<'blog'>[];
+}
+
+const { posts } = Astro.props;
+---
+
+<ol class="posts" aria-label="Posts">
+  {
+    posts.map((post) => (
+      <li class="post">
+        <article>
+          <p class="meta">
+            <time datetime={post.data.date.toISOString().slice(0, 10)}>{formatDate(post.data.date)}</time>
+            <span aria-hidden="true"> · </span>
+            {readingTime(post.body)} min read
+            {post.data.draft && <span class="draft">draft</span>}
+          </p>
+          <h2 class="title">
+            <a href={`/blog/${post.id}/`}>{post.data.title}</a>
+          </h2>
+          <p class="description">{post.data.description}</p>
+          <TagList tags={post.data.tags} link class="tags" />
+        </article>
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .posts {
+    display: grid;
+    border-top: 1px solid var(--color-line);
+  }
+
+  .post article {
+    position: relative;
+    padding-block: 1.75rem;
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .meta {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--color-muted);
+  }
+
+  .draft {
+    margin-left: 0.75rem;
+    padding: 0.05rem 0.4rem;
+    border: 1px solid var(--color-accent);
+    color: var(--color-accent);
+  }
+
+  .title {
+    margin-top: 0.5rem;
+    font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  /* The title link covers the row; tag links sit above it. */
+  .title a {
+    color: var(--color-fg);
+    text-decoration: none;
+  }
+
+  .title a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .title a:focus-visible {
+    outline: none;
+  }
+
+  .title a:focus-visible::after {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  .post:hover .title a {
+    color: var(--color-accent-strong);
+  }
+
+  .description {
+    margin-top: 0.5rem;
+    max-width: 64ch;
+    color: var(--color-muted);
+  }
+
+  .post :global(.tags) {
+    margin-top: 1rem;
+  }
+</style>
