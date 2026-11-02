@@ -1,7 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
-import ProjectCard from '../../components/ui/ProjectCard.astro';
 import PageHeader from '../../components/ui/PageHeader.astro';
+import ProjectGrid from '../../components/ui/ProjectGrid.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
 const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
@@ -10,14 +10,6 @@ const projects = (await getCollection('projects')).sort((a, b) => a.data.order -
 <BaseLayout title="Projects" description="Research code, tools and side projects by Hasan Serdar Arikan.">
   <div class="container-page">
     <PageHeader title="Projects" lede="Research code, tools and side projects, each with a link to its repository." />
-    <ul class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3" aria-label="Projects">
-      {
-        projects.map((project) => (
-          <li>
-            <ProjectCard project={project} />
-          </li>
-        ))
-      }
-    </ul>
+    <ProjectGrid projects={projects} label="Projects" />
   </div>
 </BaseLayout>

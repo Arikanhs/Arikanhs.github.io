@@ -117,3 +117,18 @@ Each entry says what was chosen and why.
   injected by a small integration only when `command === 'dev'`.
 - **WebGL tests run in the installed Google Chrome** (`chrome-gpu` Playwright project,
   one worker): Playwright's headless shell only has SwiftShader software WebGL.
+
+## Stage 5
+
+- **Rest state shows the image** (70% opacity) and the random-to-image resolve plays on
+  hover/focus, so cards are informative before any interaction.
+- **Effect as overdraw.** textmode draws the converted image as usual; unsettled cells are
+  overdrawn with random glyphs in the cell's sampled color. When the effect ends the frame
+  is exactly the converted image again, so there is no jump. Cell positions use textmode's
+  origin, measured: column offset ceil(cols/2) - 1, row offset floor(rows/2).
+- **Live budget: 6 contexts**, live only while on screen, with 150 ms / 600 ms hysteresis.
+  Browsers start dropping contexts around 16; 6 covers every card visible at once.
+- **Layout:** 6-column grid on desktop (featured 3, others 2). A lone card on the last row
+  is accepted rather than reordering projects.
+- **Summary clamped to three lines on cards** (full text stays in the DOM for screen
+  readers and appears on the project page).

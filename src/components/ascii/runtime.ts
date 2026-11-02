@@ -1,9 +1,10 @@
 // Client runtime for AsciiImage. Each [data-ascii] root gets one controller:
-// it waits until the root nears the viewport, draws the static Canvas 2D
-// version, and, when WebGL2 is available and motion is allowed, upgrades to a
-// live textmode.js instance. textmode.js is only downloaded at that point.
+// when the root nears the viewport it draws the static Canvas 2D version;
+// while it is on screen, and WebGL2 is available and motion is allowed, it
+// upgrades to a live textmode.js instance (at most MAX_LIVE at a time).
+// textmode.js is only downloaded at that point.
 import type { TextmodeImage, Textmodifier } from 'textmode.js';
-import { drawStaticAscii, prepareImage, type PreparedImage } from './raster';
+import { drawStaticAscii, prepareImage, sampleCells, type PreparedImage } from './raster';
 
 export type AsciiState = 'idle' | 'static' | 'live';
 
@@ -26,6 +27,20 @@ interface LiveInstance {
   abort?: () => void;
 }
 
+/** Hover/focus animation: "reveal" resolves random glyphs into the image, "dissolve" scatters a few. */
+interface Effect {
+  kind: 'reveal' | 'dissolve';
+  start: number;
+  duration: number;
+}
+
+/** Per-grid data for the effect: each cell's color and its random settle order. */
+interface CellData {
+  key: string;
+  colors: Uint8ClampedArray;
+  ranks: Float32Array;
+}
+
 export interface AsciiConfigureDetail {
   characters?: string;
   cellSize?: number;
@@ -33,8 +48,17 @@ export interface AsciiConfigureDetail {
 }
 
 const MAX_DPR = 2;
+/** Live WebGL instances allowed at once; further on-screen roots wait their turn. */
+export const MAX_LIVE = 6;
+/** Delays that keep a fast scroll from creating and destroying contexts. */
+const GO_LIVE_DELAY = 150;
+const RELEASE_DELAY = 600;
+const REVEAL_MS = 600;
+const DISSOLVE_MS = 450;
+
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const controllers = new Map<HTMLElement, AsciiController>();
+const waiting = new Set<AsciiController>();
 
 let webgl2: boolean | undefined;
 /** WebGL2 on real hardware; software-only WebGL counts as unavailable. */
@@ -54,6 +78,21 @@ function monoFont() {
   return getComputedStyle(document.documentElement).getPropertyValue('--font-plex-mono').trim() || 'monospace';
 }
 
+function liveCount() {
+  let count = 0;
+  for (const controller of controllers.values()) if (controller.holdsSlot) count += 1;
+  return count;
+}
+
+/** Gives free live slots to on-screen roots that are waiting, in arrival order. */
+function fillSlots() {
+  for (const controller of waiting) {
+    if (liveCount() >= MAX_LIVE) return;
+    waiting.delete(controller);
+    if (controller.onScreen) void controller.goLive();
+  }
+}
+
 class AsciiController {
   private config: Config;
   private readonly staticCanvas: HTMLCanvasElement;
@@ -63,8 +102,17 @@ class AsciiController {
   /** Bumped on release, so async work that finishes late is discarded. */
   private generation = 0;
   private frame = 0;
+  private visibilityTimer = 0;
   private readonly resizeObserver: ResizeObserver;
+  private effect?: Effect;
+  private effectFrame = 0;
+  private cells?: CellData;
+  private hovered = false;
+  private focused = false;
+  /** True from the start of goLive() until release: counts against MAX_LIVE. */
+  holdsSlot = false;
   nearViewport = false;
+  onScreen = false;
 
   constructor(readonly root: HTMLElement) {
     const data = root.dataset;
@@ -82,6 +130,18 @@ class AsciiController {
     root.addEventListener('ascii:configure', (event) =>
       this.configure((event as CustomEvent<AsciiConfigureDetail>).detail),
     );
+
+    // A card (or any ancestor) marked data-ascii-trigger plays the effect on
+    // hover and keyboard focus.
+    const trigger = root.closest<HTMLElement>('[data-ascii-trigger]');
+    if (trigger) {
+      trigger.addEventListener('pointerenter', () => this.setActive({ hovered: true }));
+      trigger.addEventListener('pointerleave', () => this.setActive({ hovered: false }));
+      trigger.addEventListener('focusin', () => this.setActive({ focused: true }));
+      trigger.addEventListener('focusout', (event) => {
+        if (!trigger.contains(event.relatedTarget as Node | null)) this.setActive({ focused: false });
+      });
+    }
   }
 
   get wantsLive() {
@@ -103,6 +163,7 @@ class AsciiController {
     };
   }
 
+  /** Near the viewport: load the image and draw the static layer (once). */
   async start() {
     if (this.started) return;
     this.started = true;
@@ -118,7 +179,23 @@ class AsciiController {
     // cheap, and it is what shows until (and unless) the live version takes over.
     this.renderStatic();
     this.setState('static');
-    if (this.wantsLive && this.nearViewport) await this.goLive();
+    this.refreshMode();
+  }
+
+  /** On or off screen: go live after a short delay, release a while after leaving. */
+  setOnScreen(onScreen: boolean) {
+    this.onScreen = onScreen;
+    clearTimeout(this.visibilityTimer);
+    this.visibilityTimer = window.setTimeout(
+      () => {
+        if (this.onScreen) this.refreshMode();
+        else {
+          waiting.delete(this);
+          this.release();
+        }
+      },
+      onScreen ? GO_LIVE_DELAY : RELEASE_DELAY,
+    );
   }
 
   private renderStatic() {
@@ -136,9 +213,16 @@ class AsciiController {
   }
 
   async goLive() {
-    if (this.live || !this.prepared || !this.wantsLive) return;
+    if (this.holdsSlot || !this.prepared || !this.wantsLive) return;
+    if (liveCount() >= MAX_LIVE) {
+      waiting.add(this);
+      return;
+    }
+    this.holdsSlot = true;
     try {
       await this.createLive();
+      // createLive() bails out if the root went away or motion was turned off.
+      if (!this.live && this.holdsSlot) this.release();
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') return;
       console.warn('AsciiImage: WebGL rendering failed; showing the static version.', error);
@@ -193,9 +277,14 @@ class AsciiController {
     if (this.live !== live) return; // released while loading
     tm.noLoop();
     tm.redraw();
+    // redraw() renders on the next frame: show the canvas only once it has content.
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    if (this.live !== live) return;
     this.showGrid(tm);
     canvas.classList.add('is-ready');
     this.setState('live');
+    // Hovered while it was still loading: play the reveal now.
+    if (this.hovered || this.focused) this.play('reveal');
   }
 
   private drawLive(live: LiveInstance) {
@@ -206,6 +295,82 @@ class AsciiController {
     // Cover-fit: scale the aspect-correct size until it fills the whole grid.
     const scale = Math.max(grid.cols / source.width, grid.rows / source.height);
     tm.image(source, Math.ceil(source.width * scale), Math.ceil(source.height * scale));
+    if (this.effect) this.drawEffect(tm, grid.cols, grid.rows, this.effect);
+  }
+
+  /**
+   * Overdraws the cells that have not settled yet with a random glyph in the
+   * cell's own color, on an opaque cell, so they hide the converted glyph.
+   */
+  private drawEffect(tm: Textmodifier, cols: number, rows: number, effect: Effect) {
+    if (!this.prepared) return;
+    const key = `${cols}x${rows}`;
+    if (this.cells?.key !== key) {
+      const ranks = new Float32Array(cols * rows);
+      for (let i = 0; i < ranks.length; i += 1) ranks[i] = Math.random();
+      this.cells = { key, colors: sampleCells(this.prepared, cols, rows), ranks };
+    }
+    const { colors, ranks } = this.cells;
+    const t = Math.min(1, (performance.now() - effect.start) / effect.duration);
+    // reveal: cells settle in rank order with an ease-out; dissolve: a scatter
+    // that peaks at about a third of the cells half-way and settles back.
+    const settled = effect.kind === 'reveal' ? 1 - (1 - t) ** 3 : 0;
+    const scattered = effect.kind === 'dissolve' ? 0.35 * Math.sin(Math.PI * t) : 1;
+    const glyphs = Array.from(this.config.characters.replace(/\s/g, ''));
+    if (glyphs.length === 0) glyphs.push('#');
+    // textmode's origin is the centre cell: column offset ceil(cols/2) - 1, row offset floor(rows/2).
+    const colOffset = Math.ceil(cols / 2) - 1;
+    const rowOffset = Math.floor(rows / 2);
+    tm.cellColor(this.config.background);
+    for (let row = 0; row < rows; row += 1) {
+      for (let col = 0; col < cols; col += 1) {
+        const i = row * cols + col;
+        const rank = ranks[i];
+        const scrambled = effect.kind === 'reveal' ? rank >= settled : rank < scattered;
+        if (!scrambled) continue;
+        tm.push();
+        tm.translate(col - colOffset, row - rowOffset);
+        tm.char(glyphs[(Math.random() * glyphs.length) | 0]);
+        tm.charColor(colors[i * 4], colors[i * 4 + 1], colors[i * 4 + 2]);
+        tm.point();
+        tm.pop();
+      }
+    }
+  }
+
+  private setActive(change: { hovered?: boolean; focused?: boolean }) {
+    const wasActive = this.hovered || this.focused;
+    this.hovered = change.hovered ?? this.hovered;
+    this.focused = change.focused ?? this.focused;
+    const active = this.hovered || this.focused;
+    if (active !== wasActive) this.play(active ? 'reveal' : 'dissolve');
+  }
+
+  /** Runs an effect on the live instance; static versions only fade (CSS). */
+  private play(kind: Effect['kind']) {
+    const live = this.live;
+    if (!live?.source || reducedMotion.matches) return;
+    this.effect = { kind, start: performance.now(), duration: kind === 'reveal' ? REVEAL_MS : DISSOLVE_MS };
+    this.root.dataset.asciiEffect = kind;
+    cancelAnimationFrame(this.effectFrame);
+    const tick = () => {
+      const effect = this.effect;
+      if (!effect || this.live !== live) return;
+      if (performance.now() - effect.start >= effect.duration) {
+        this.stopEffect();
+        live.tm.redraw();
+        return;
+      }
+      live.tm.redraw();
+      this.effectFrame = requestAnimationFrame(tick);
+    };
+    this.effectFrame = requestAnimationFrame(tick);
+  }
+
+  private stopEffect() {
+    cancelAnimationFrame(this.effectFrame);
+    this.effect = undefined;
+    delete this.root.dataset.asciiEffect;
   }
 
   /** Exposes the live grid size (e.g. "135x76") for the lab and the tests. */
@@ -216,6 +381,7 @@ class AsciiController {
   /** Destroys the live instance (losing its WebGL context); the static layer stays. */
   release() {
     this.generation += 1;
+    this.stopEffect();
     const live = this.live;
     this.live = undefined;
     if (live) {
@@ -225,13 +391,17 @@ class AsciiController {
     }
     // The static layer is kept up to date underneath, so it is already correct.
     if (this.prepared) this.setState('static');
+    if (this.holdsSlot) {
+      this.holdsSlot = false;
+      fillSlots();
+    }
   }
 
-  /** Called when reduced motion or the lab's renderer switch changes. */
+  /** Goes live or static to match visibility, reduced motion and WebGL support. */
   refreshMode() {
     if (this.wantsLive) {
-      if (this.started && this.nearViewport) void this.goLive();
-    } else if (this.live) {
+      if (this.started && this.onScreen) void this.goLive();
+    } else if (this.holdsSlot) {
       this.release();
     }
   }
@@ -275,31 +445,41 @@ class AsciiController {
 
   /** Stops observing and releases everything (the root is gone). */
   dispose() {
+    clearTimeout(this.visibilityTimer);
+    waiting.delete(this);
     this.release();
     this.resizeObserver.disconnect();
-    viewportObserver.unobserve(this.root);
+    nearObserver.unobserve(this.root);
+    screenObserver.unobserve(this.root);
     controllers.delete(this.root);
   }
 }
 
-const viewportObserver = new IntersectionObserver(
+// Near the viewport: prepare and draw the static version ahead of time.
+const nearObserver = new IntersectionObserver(
   (entries) => {
     for (const entry of entries) {
       const controller = controllers.get(entry.target as HTMLElement);
       if (!controller) continue;
       controller.nearViewport = entry.isIntersecting;
-      if (entry.isIntersecting) void controller.start().then(() => controller.refreshMode());
+      if (entry.isIntersecting) void controller.start();
     }
   },
   { rootMargin: '300px 0px' },
 );
+
+// Actually on screen: eligible for a live WebGL instance.
+const screenObserver = new IntersectionObserver((entries) => {
+  for (const entry of entries) controllers.get(entry.target as HTMLElement)?.setOnScreen(entry.isIntersecting);
+});
 
 /** Finds every AsciiImage root on the page and starts watching it. Idempotent. */
 export function initAsciiImages() {
   for (const root of document.querySelectorAll<HTMLElement>('[data-ascii]')) {
     if (controllers.has(root)) continue;
     controllers.set(root, new AsciiController(root));
-    viewportObserver.observe(root);
+    nearObserver.observe(root);
+    screenObserver.observe(root);
   }
 }
 

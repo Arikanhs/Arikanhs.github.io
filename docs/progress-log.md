@@ -13,7 +13,7 @@ Autonomous build run started 2026-11-01. Instructions: docs/run-instructions.md
    number from private/ at runtime; never write the number into any file).
 
 ## Current status
-- Stage 4 committed. Next: Stage 5 (Projects section with ASCII cards).
+- Stage 5 committed. Next: Stage 6 (Project pages and view transitions).
 
 ## Setup (2026-11-01)
 - Keep-awake: `caffeinate -dims` started in the background, **PID 9205** (restarted after
@@ -141,3 +141,24 @@ Autonomous build run started 2026-11-01. Instructions: docs/run-instructions.md
   load interrupted by pagehide no longer leaves a box idle; the test-helper recursion that
   crashed the machine (see "Crash during Stage 4").
 - Owner check: whether the look matches Image2ASCII output (docs/TODO-for-me.md).
+
+## Stage 5: Projects section with ASCII cards (done)
+- Plan: docs/plans/stage-5.md.
+- Built: ProjectCard (ASCII cover fills the card, text on a 90% scrim, art at 70% at rest
+  and 100% on hover/focus-within, amber border, summary clamped to 3 lines), ProjectGrid
+  (featured: 2 of 2 columns from 768px, half of a 6-column row from 1024px, taller),
+  /projects uses it, home has a "Selected work" section with the featured cards.
+  runtime.ts: near viewport -> static snapshot; on screen -> live after 150 ms, released
+  600 ms after leaving; at most 6 live instances with a waiting queue; hover/focus effect
+  ("reveal": random glyphs settle into the image over 600 ms; "dissolve": a soft scatter
+  over 450 ms) drawn as textmode overdraw on unsettled cells, ending on the exact resting
+  frame. raster.ts: shared per-cell sampler. Dev-only /lab/cards with 10 cards.
+- Tests: tests/e2e/cards.spec.ts (GPU Chrome): 10 cards scrolled down and up by wheel:
+  max live <= 6, nothing live off screen after settling, frame-time p95 < 50 ms, no console
+  warnings; hover reveal/dissolve end on the resting frame; keyboard focus plays it;
+  reduced motion stays static. tests/e2e/projects.spec.ts: ASCII on every card, featured
+  larger, canvases aria-hidden, home "Selected work". tests/e2e/utils/ascii.ts helpers.
+- Checks: build OK; astro check 0/0/0; `npm test` 47 passed (+10 opt-in screenshots);
+  screenshots of /projects (rest, mid-hover, 375px) and home reviewed.
+- Review fixes: art too faint at rest (55% -> 70%, taller cards, shorter scrim lead-in);
+  live canvas was marked ready before its first frame was drawn.

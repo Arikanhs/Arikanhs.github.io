@@ -1,31 +1,84 @@
 ---
+// A project card: the cover rendered as ASCII fills the card; the text sits on
+// a scrim at the bottom. Hover or focus inside the card plays the ASCII effect.
 import type { CollectionEntry } from 'astro:content';
 import { displayUrl } from '../../lib/format';
+import AsciiImage from '../ascii/AsciiImage.astro';
 import TagList from './TagList.astro';
 
 interface Props {
   project: CollectionEntry<'projects'>;
+  /** 2 on /projects, 3 inside a titled section such as "Selected work". */
+  headingLevel?: 2 | 3;
 }
 
-const { title, summary, tags, repo } = Astro.props.project.data;
+const { project, headingLevel = 2 } = Astro.props;
+const { title, summary, tags, repo, cover, featured } = project.data;
+const Heading = headingLevel === 2 ? 'h2' : 'h3';
 ---
 
-<article class="card">
-  <h2 class="title">{title}</h2>
-  <p class="summary">{summary}</p>
-  <TagList tags={tags} class="tags" />
-  <a class="link repo" href={repo}>{displayUrl(repo)}<span aria-hidden="true"> ↗</span></a>
+<article class:list={['card', { 'is-featured': featured }]} data-ascii-trigger>
+  <div class="art">
+    <AsciiImage src={cover} />
+  </div>
+  <div class="body">
+    <Heading class="title">{title}</Heading>
+    <p class="summary">{summary}</p>
+    <TagList tags={tags} class="tags" />
+    <a class="link repo" href={repo}>{displayUrl(repo)}<span aria-hidden="true"> ↗</span></a>
+  </div>
 </article>
 
 <style>
   .card {
+    position: relative;
+    isolation: isolate;
     display: flex;
     flex-direction: column;
+    justify-content: flex-end;
     height: 100%;
-    padding: 1.5rem;
+    min-height: 28rem;
+    overflow: hidden;
     border: 1px solid var(--color-line);
     border-radius: 3px;
-    background-color: var(--color-surface);
+    background-color: var(--color-bg);
+    transition: border-color 200ms;
+  }
+
+  .card:hover,
+  .card:focus-within {
+    border-color: color-mix(in oklab, var(--color-accent) 55%, var(--color-line));
+  }
+
+  .art {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+  }
+
+  /* Calm at rest, full strength while the card is hovered or focused. */
+  .art :global(.ascii-image) {
+    opacity: 0.7;
+    transition: opacity 500ms ease-out;
+  }
+
+  .card:hover .art :global(.ascii-image),
+  .card:focus-within .art :global(.ascii-image) {
+    opacity: 1;
+  }
+
+  /*
+   * Scrim: from transparent to the page background at 90% before the text
+   * starts. Even over pure white glyphs that keeps fg at 12.7:1 and muted at
+   * 5.6:1 (faint would fail, so it is not used here).
+   */
+  .body {
+    padding: 3.5rem 1.5rem 1.5rem;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      color-mix(in oklab, var(--color-bg) 90%, transparent) 3rem
+    );
   }
 
   .title {
@@ -35,10 +88,21 @@ const { title, summary, tags, repo } = Astro.props.project.data;
     letter-spacing: -0.01em;
   }
 
+  .is-featured .title {
+    font-size: clamp(1.375rem, 1.1rem + 1vw, 1.75rem);
+  }
+
+  /* Three lines on a card keep the art visible; the full text is on the project page. */
   .summary {
+    display: -webkit-box;
     margin-top: 0.75rem;
+    max-width: 60ch;
+    overflow: hidden;
     color: var(--color-muted);
     line-height: 1.6;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
   }
 
   .card :global(.tags) {
@@ -46,11 +110,16 @@ const { title, summary, tags, repo } = Astro.props.project.data;
   }
 
   .repo {
-    margin-top: auto;
-    padding-top: 1.25rem;
-    align-self: flex-start;
+    display: inline-block;
+    margin-top: 1rem;
     font-family: var(--font-mono);
     font-size: 0.8125rem;
     overflow-wrap: anywhere;
+  }
+
+  @media (min-width: 48rem) {
+    .is-featured {
+      min-height: 32rem;
+    }
   }
 </style>

@@ -1,0 +1,55 @@
+---
+// Grid of project cards. Featured cards take two columns from 768px and half
+// the row from 1024px; the rest take a third.
+import type { CollectionEntry } from 'astro:content';
+import ProjectCard from './ProjectCard.astro';
+
+interface Props {
+  projects: CollectionEntry<'projects'>[];
+  label: string;
+  headingLevel?: 2 | 3;
+}
+
+const { projects, label, headingLevel } = Astro.props;
+---
+
+<ul class="project-grid" aria-label={label}>
+  {
+    projects.map((project) => (
+      <li class:list={{ 'is-featured': project.data.featured }}>
+        <ProjectCard project={project} headingLevel={headingLevel} />
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .project-grid {
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  @media (min-width: 48rem) {
+    .project-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .is-featured {
+      grid-column: span 2;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .project-grid {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+
+    li {
+      grid-column: span 2;
+    }
+
+    .is-featured {
+      grid-column: span 3;
+    }
+  }
+</style>

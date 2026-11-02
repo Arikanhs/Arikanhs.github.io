@@ -15,6 +15,7 @@ const devOnlyPages = {
     'astro:config:setup': ({ command, injectRoute }) => {
       if (command !== 'dev') return;
       injectRoute({ pattern: '/lab/ascii', entrypoint: './src/pages/lab/_ascii.astro' });
+      injectRoute({ pattern: '/lab/cards', entrypoint: './src/pages/lab/_cards.astro' });
     },
   },
 };

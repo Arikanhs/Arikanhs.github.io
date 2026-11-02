@@ -100,6 +100,25 @@ export function gridFor(width: number, height: number, cellSize: number) {
 }
 
 /**
+ * One RGBA pixel per grid cell: the prepared image cover-cropped to the grid's
+ * aspect ratio, with the browser averaging each cell's pixels as it scales down.
+ */
+export function sampleCells(image: PreparedImage, cols: number, rows: number): Uint8ClampedArray {
+  const target = cols / rows;
+  const sourceAspect = image.width / image.height;
+  const sw = sourceAspect > target ? image.height * target : image.width;
+  const sh = sourceAspect > target ? image.height : image.width / target;
+  const sampler = document.createElement('canvas');
+  sampler.width = cols;
+  sampler.height = rows;
+  const ctx = sampler.getContext('2d', { willReadFrequently: true });
+  if (!ctx) return new Uint8ClampedArray(cols * rows * 4);
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(image.canvas, (image.width - sw) / 2, (image.height - sh) / 2, sw, sh, 0, 0, cols, rows);
+  return ctx.getImageData(0, 0, cols, rows).data;
+}
+
+/**
  * The fallback: cover-crops the prepared image to one pixel per cell, maps each
  * cell's brightness to a character and fills it with the cell's color.
  */
@@ -114,22 +133,9 @@ export function drawStaticAscii(
   const { cellSize, background, fontFamily } = options;
   const chars = Array.from(options.characters);
   const { cols, rows } = gridFor(width, height, cellSize);
-
-  // Cover-crop the source to the grid's aspect ratio, then let the browser
-  // average each cell's pixels while it scales down.
-  const target = cols / rows;
-  const sourceAspect = image.width / image.height;
-  const sw = sourceAspect > target ? image.height * target : image.width;
-  const sh = sourceAspect > target ? image.height : image.width / target;
-  const sampler = document.createElement('canvas');
-  sampler.width = cols;
-  sampler.height = rows;
-  const sctx = sampler.getContext('2d', { willReadFrequently: true });
   const ctx = canvas.getContext('2d');
-  if (!sctx || !ctx) return { cols, rows };
-  sctx.imageSmoothingQuality = 'high';
-  sctx.drawImage(image.canvas, (image.width - sw) / 2, (image.height - sh) / 2, sw, sh, 0, 0, cols, rows);
-  const cells = sctx.getImageData(0, 0, cols, rows).data;
+  if (!ctx) return { cols, rows };
+  const cells = sampleCells(image, cols, rows);
 
   canvas.width = Math.round(width * dpr);
   canvas.height = Math.round(height * dpr);

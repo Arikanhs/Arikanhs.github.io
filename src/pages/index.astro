@@ -1,11 +1,67 @@
 ---
+import { getCollection } from 'astro:content';
 import PageHeader from '../components/ui/PageHeader.astro';
+import ProjectGrid from '../components/ui/ProjectGrid.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE } from '../lib/site';
+
+const featured = (await getCollection('projects', ({ data }) => data.featured)).sort(
+  (a, b) => a.data.order - b.data.order,
+);
 ---
 
 <BaseLayout>
   <div class="container-page">
     <PageHeader title={SITE.name} lede={SITE.intro} path="~" />
+
+    {
+      featured.length > 0 && (
+        <section class="selected" aria-labelledby="selected-work">
+          <div class="section-head">
+            <h2 id="selected-work" class="section-title">
+              <span class="prompt" aria-hidden="true">
+                ##
+              </span>
+              Selected work
+            </h2>
+            <a class="link all" href="/projects/">
+              All projects<span aria-hidden="true"> →</span>
+            </a>
+          </div>
+          <ProjectGrid projects={featured} label="Selected work" headingLevel={3} />
+        </section>
+      )
+    }
   </div>
 </BaseLayout>
+
+<style>
+  .selected {
+    margin-top: clamp(1rem, 0.5rem + 2vw, 2rem);
+  }
+
+  .section-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .section-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .prompt {
+    margin-right: 0.5rem;
+    color: var(--color-accent);
+  }
+
+  .all {
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+  }
+</style>

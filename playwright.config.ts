@@ -20,14 +20,14 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] }, testIgnore: /ascii\.spec\.ts/ },
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] }, testIgnore: /(ascii|cards)\.spec\.ts/ },
     // WebGL tests need a real GPU. Playwright's headless shell only has software
     // WebGL (SwiftShader), which the site deliberately treats as "no WebGL", so
     // these run in the installed Google Chrome against the dev server.
     {
       name: 'chrome-gpu',
       use: { ...devices['Desktop Chrome'], channel: 'chrome', baseURL: `http://127.0.0.1:${DEV_PORT}` },
-      testMatch: /ascii\.spec\.ts/,
+      testMatch: /(ascii|cards)\.spec\.ts/,
     },
   ],
   webServer: [
