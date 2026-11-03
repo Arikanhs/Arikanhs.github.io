@@ -1,4 +1,5 @@
 ---
+import HeroAscii from '../components/ascii/HeroAscii.astro';
 import ProjectGrid from '../components/ui/ProjectGrid.astro';
 import TerminalHero from '../components/ui/TerminalHero.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
@@ -8,9 +9,14 @@ const featured = (await getProjects()).filter((project) => project.data.featured
 ---
 
 <BaseLayout>
-  <div class="container-page">
-    <TerminalHero />
+  <div class="home-hero">
+    <HeroAscii avoid="#hero-terminal" />
+    <div class="container-page">
+      <TerminalHero />
+    </div>
+  </div>
 
+  <div class="container-page">
     {
       featured.length > 0 && (
         <section class="selected" aria-labelledby="selected-work">
@@ -33,6 +39,20 @@ const featured = (await getProjects()).filter((project) => project.data.featured
 </BaseLayout>
 
 <style>
+  /* Full-width band behind the hero for the ASCII background. */
+  .home-hero {
+    position: relative;
+    isolation: isolate;
+  }
+
+  /* Narrower screens: the shape gets a band below the terminal (wide ones
+     have room beside it). Without JS there is no background, so no band. */
+  @media (max-width: 69.99rem) {
+    :global(html.js) .home-hero {
+      padding-bottom: clamp(18rem, 92vw, 30rem);
+    }
+  }
+
   .selected {
     margin-top: 0.5rem;
   }
@@ -54,7 +74,7 @@ const featured = (await getProjects()).filter((project) => project.data.featured
 
   .prompt {
     margin-right: 0.5rem;
-    color: var(--color-accent);
+    color: var(--color-accent-text);
   }
 
   .all {

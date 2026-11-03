@@ -114,7 +114,7 @@ const masks = new Map<string, Map<string, Uint8ClampedArray>>();
  * Semibold at 1.25x the cell keeps glyph "ink" close to textmode's pixel font
  * (IBM Plex Mono advance is 0.6em and caps 0.7em, so glyphs still fit the cell).
  */
-function glyphMasks(chars: string[], cellPx: number, fontFamily: string) {
+export function glyphMasks(chars: string[], cellPx: number, fontFamily: string) {
   const key = `${cellPx}|${fontFamily}|${chars.join('')}`;
   let set = masks.get(key);
   if (set) return set;
@@ -142,7 +142,7 @@ function glyphMasks(chars: string[], cellPx: number, fontFamily: string) {
 }
 
 /** Any CSS color as [r, g, b]. */
-function parseColor(color: string): [number, number, number] {
+export function parseColor(color: string): [number, number, number] {
   const ctx = document.createElement('canvas').getContext('2d');
   if (!ctx) return [0, 0, 0];
   ctx.fillStyle = color;

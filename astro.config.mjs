@@ -13,6 +13,10 @@ import sitemap from '@astrojs/sitemap';
 /**
  * Dev-only pages: routed by `astro dev`, never built. The page files start with
  * "_" so Astro's file-based routing ignores them.
+ *
+ * While testing the animation page, `astro dev` also sends "/" to /lab/home, so a
+ * refresh lands there. The real home page is unchanged (and is what gets built);
+ * see it in dev at /?classic. LAB_HOME=off turns the redirect off (the tests do).
  * @type {import('astro').AstroIntegration}
  */
 const devOnlyPages = {
@@ -22,6 +26,15 @@ const devOnlyPages = {
       if (command !== 'dev') return;
       injectRoute({ pattern: '/lab/ascii', entrypoint: './src/pages/lab/_ascii.astro' });
       injectRoute({ pattern: '/lab/cards', entrypoint: './src/pages/lab/_cards.astro' });
+      injectRoute({ pattern: '/lab/home', entrypoint: './src/pages/lab/_home.astro' });
+    },
+    'astro:server:setup': ({ server }) => {
+      if (process.env.LAB_HOME === 'off') return;
+      server.middlewares.use((req, res, next) => {
+        if (req.url !== '/') return next();
+        res.writeHead(302, { Location: '/lab/home/' });
+        res.end();
+      });
     },
   },
 };

@@ -74,7 +74,7 @@ test('arrow keys move the active option and focus stays inside while open', asyn
 
 test('fuzzy matching ranks close matches first and shows "No matches."', async ({ page }) => {
   expect(fuzzyScore('kok', 'Graph algorithms on Kokkos')).toBeGreaterThan(fuzzyScore('kok', 'work book'));
-  expect(fuzzyScore('zzz', 'Image2ASCII')).toBe(0);
+  expect(fuzzyScore('zzz', 'GCN-driven CUDA tuning')).toBe(0);
   await page.goto('/');
   await page.keyboard.press('Control+k');
   await page.keyboard.type('kok');
@@ -103,7 +103,7 @@ test.describe('without JavaScript', () => {
   test.use({ javaScriptEnabled: false });
 
   test('the search button is hidden and reveal targets are visible', async ({ page }) => {
-    await page.goto('/projects/');
+    await page.goto('/resume/');
     await expect(page.getByRole('button', { name: /^search/ })).toBeHidden();
     await expect(page.locator('[data-reveal]').first()).toHaveCSS('opacity', '1');
   });

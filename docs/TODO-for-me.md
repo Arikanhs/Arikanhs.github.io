@@ -22,10 +22,6 @@ Things only you can do or confirm. Grouped by topic; each line says where to cha
 
 ## Content (Stage 3)
 Search for "Placeholder" in src/content/ to find every spot.
-- [ ] **Image2ASCII** (src/content/projects/image2ascii.md): there is no public repo at
-      https://github.com/Arikanhs/Image2ASCII yet, so its link is a 404 until you publish it
-      (or change `repo`). Also set the real date and write-up, and replace the generated
-      cover with one of your own input images.
 - [ ] Confirm the code repos matched to your papers: `ml_cuda` for the HPEC 2025 GCN/CUDA
       paper and `Graph-Algorithms-LBNL` for the IPDPSW 2024 Kokkos paper. Both READMEs and
       your resume point that way. Set the real project dates.
@@ -39,11 +35,17 @@ Search for "Placeholder" in src/content/ to find every spot.
       (Alpha-Fold-LBNL), NREL energy forecasting (ML-NREL), gov_job_finder.
 
 ## ASCII (Stage 4)
-- [ ] Open the lab (`npm run dev`, then http://localhost:4321/lab/ascii) and confirm the
-      colored ASCII looks like your Image2ASCII output. Tune the defaults in
+- [ ] Open the lab (`npm run dev`, then http://localhost:4321/lab/ascii) and confirm you like
+      the colored ASCII on the project covers. Tune the defaults in
       src/components/ascii/AsciiImage.astro (`characters`, `cellSize`, `normalize`).
 - [ ] The WebGL tests (tests/e2e/ascii.spec.ts) use your installed Google Chrome, because
       Playwright's own headless Chromium has only software WebGL.
+
+## Home background (after the run)
+- [ ] Watch the animation (bird, detective, robot, chip; 5 s each, each with its own act) and say what to change: the shapes
+      (src/components/ascii/shapes.ts), hold time (top of src/components/ascii/morph.ts),
+      colors (the home theme in src/styles/global.css), or the letter size (`cellSize`
+      in morph.ts).
 
 ## Home hero (Stage 7)
 - [ ] Check the hero's "focus" and "status" lines (src/lib/site.ts, `focus` and `status`).
@@ -59,3 +61,14 @@ Search for "Placeholder" in src/content/ to find every spot.
       /projects/); the automated run here scored 98/100/100/100 on both.
 - [ ] Look at public/og.png (the social preview) and the favicon; regenerate with
       `npm run assets` if you change your name or intro.
+
+## Page themes (after the run)
+- [ ] Look at Home, Projects and Publications on your phone and laptop and say if any color
+      should be stronger or softer (src/styles/global.css, the html[data-theme] blocks).
+- [ ] Blog is deep violet into black with amber (you asked for black; amber is my pick for the
+      small color). Say if you want the tropical mint from Resume there instead.
+- [ ] Hover over the home animation and say if the ripple should be bigger, slower or calmer
+      (`RIPPLE_*` at the top of src/components/ascii/morph.ts).
+- [ ] Captions under the home animation: bird "Freedom", robot "Artificial Intelligence" and
+      chip "Technology" are yours; the detective's "Cybersecurity" is a placeholder. Change
+      any of them in src/components/ascii/shapes.ts (`caption`).

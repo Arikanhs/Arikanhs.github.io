@@ -154,7 +154,7 @@ const contacts = [
   }
 
   .section-title span {
-    color: var(--color-accent);
+    color: var(--color-accent-text);
   }
 
   .pubs {
@@ -211,10 +211,15 @@ const contacts = [
     color: var(--color-muted);
   }
 
-  /* Print (A4 and Letter): black on white, no site chrome, compact type. */
+  /*
+   * Print (A4 and Letter): black on white, no site chrome, compact type.
+   * :root[data-theme] outranks the page's screen theme (html[data-theme='resume']).
+   */
   @media print {
-    :global(:root) {
+    :global(:root),
+    :global(:root[data-theme]) {
       --color-bg: #fff;
+      --color-bg-end: #fff;
       --color-surface: #fff;
       --color-surface-2: #f2f2f2;
       --color-line: #bbb;
@@ -222,10 +227,12 @@ const contacts = [
       --color-muted: #444;
       --color-faint: #555;
       --color-accent: #111;
+      --color-accent-text: #111;
     }
 
     /* Light canvas (no dark page margins) and a smaller root so rem sizes shrink too. */
-    :global(html) {
+    :global(:root),
+    :global(:root[data-theme]) {
       color-scheme: light;
       background: #fff !important;
       font-size: 9pt;

@@ -17,25 +17,26 @@ function frontmatter(file: string, field: string): string | undefined {
   return new RegExp(`^${field}:\\s*(.+?)\\s*(?:#.*)?$`, 'm').exec(text)?.[1];
 }
 
-test('/projects lists every project, sorted by order, with title, summary, tags and repo', async ({ page }) => {
+test('/projects lists every project, sorted by order, with title, summary, tags and links', async ({ page }) => {
   await page.goto('/projects/');
-  const cards = page.getByRole('list', { name: 'Projects' }).getByRole('article');
-  await expect(cards).toHaveCount(projectFiles.length);
+  const rows = page.getByRole('list', { name: 'Projects' }).locator('details[data-project]');
+  await expect(rows).toHaveCount(projectFiles.length);
 
   const expectedTitles = projectFiles
     .map((file) => ({ title: frontmatter(file, 'title'), order: Number(frontmatter(file, 'order')) }))
     .sort((a, b) => a.order - b.order)
     .map((p) => p.title);
-  await expect(cards.getByRole('heading', { level: 2 })).toHaveText(expectedTitles as string[]);
+  await expect(rows.locator('.name')).toHaveText(expectedTitles as string[]);
 
-  for (const card of await cards.all()) {
-    await expect(card.locator('p')).not.toBeEmpty();
-    await expect(card.getByRole('list', { name: 'Tags' }).getByRole('listitem').first()).toBeVisible();
-    await expect(card.getByRole('link', { name: /github\.com/ })).toHaveAttribute(
+  for (const row of await rows.all()) {
+    if (!(await row.evaluate((el) => (el as HTMLDetailsElement).open))) await row.locator('summary').click();
+    await expect(row.locator('.summary')).not.toBeEmpty();
+    await expect(row.getByRole('list', { name: 'Tags' }).getByRole('listitem').first()).toBeVisible();
+    await expect(row.getByRole('link', { name: /github\.com/ })).toHaveAttribute(
       'href',
       /^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/?$/,
     );
-    await expect(card.getByRole('heading').getByRole('link')).toHaveAttribute('href', /^\/projects\/[\w-]+\/$/);
+    await expect(row.getByRole('link', { name: /Read more/ })).toHaveAttribute('href', /^\/projects\/[\w-]+\/$/);
   }
 });
 
@@ -48,7 +49,7 @@ const cases = [
   { name: 'unchanged content passes', file: null, edit: (s: string) => s, error: null, fails: false },
   {
     name: 'a project without its required summary fails',
-    file: 'projects/image2ascii.md',
+    file: 'projects/kokkos-graph-benchmarks.md',
     edit: (s: string) => s.replace(/^summary:.*\n/m, ''),
     error: /summary/,
     fails: true,

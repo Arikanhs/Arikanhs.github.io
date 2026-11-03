@@ -52,19 +52,19 @@ const ogHtml = `
 <style>
   body { margin: 0; }
   .og { position: relative; width: 1200px; height: 630px; box-sizing: border-box; padding: 64px 72px;
-    background: radial-gradient(ellipse 70% 60% at 50% 0%, rgb(255 176 0 / 0.1), transparent 70%),
-      radial-gradient(circle at 1px 1px, rgb(236 230 220 / 0.09) 1px, transparent 0) 0 0 / 22px 22px, #0d0c0b;
-    color: #ece6dc; font-family: var(--font-plex-mono); overflow: hidden; }
-  .term { border: 1px solid #2c2824; border-radius: 6px; background: #151311;
-    box-shadow: 0 40px 90px -40px rgb(255 176 0 / 0.35); }
-  .bar { display: flex; justify-content: space-between; padding: 14px 22px; border-bottom: 1px solid #2c2824;
-    background: #1d1a17; color: #a39a8e; font-size: 20px; }
+    background: radial-gradient(ellipse 70% 60% at 50% 0%, rgb(146 83 0 / 0.08), transparent 70%),
+      radial-gradient(circle at 1px 1px, rgb(43 36 29 / 0.12) 1px, transparent 0) 0 0 / 22px 22px, #f5efe3;
+    color: #2b241d; font-family: var(--font-plex-mono); overflow: hidden; }
+  .term { border: 1px solid #d9cdb8; border-radius: 6px; background: #fbf8f1;
+    box-shadow: 0 40px 90px -40px rgb(146 83 0 / 0.3); }
+  .bar { display: flex; justify-content: space-between; padding: 14px 22px; border-bottom: 1px solid #d9cdb8;
+    background: #ede5d6; color: #5e5449; font-size: 20px; }
   .screen { padding: 36px 40px 44px; }
-  .line { margin: 0; font-size: 28px; } .ps1 { color: #ffb000; }
+  .line { margin: 0; font-size: 28px; } .ps1 { color: #925300; }
   .name { margin: 22px 0 0; font-size: 76px; font-weight: 600; letter-spacing: -0.03em; line-height: 1; }
-  .cur { display: inline-block; width: 0.5em; height: 0.8em; margin-left: 0.12em; vertical-align: -0.04em; background: #ffb000; }
-  .intro { margin: 22px 0 0; max-width: 30em; font-family: var(--font-source-serif); font-size: 29px; line-height: 1.45; color: #a39a8e; }
-  .url { position: absolute; right: 72px; bottom: 34px; margin: 0; font-size: 22px; color: #ffb000; }
+  .cur { display: inline-block; width: 0.5em; height: 0.8em; margin-left: 0.12em; vertical-align: -0.04em; background: #925300; }
+  .intro { margin: 22px 0 0; max-width: 30em; font-family: var(--font-source-serif); font-size: 29px; line-height: 1.45; color: #5e5449; }
+  .url { position: absolute; right: 72px; bottom: 34px; margin: 0; font-size: 22px; color: #925300; }
 </style>
 <div class="og">
   <div class="term">
@@ -92,7 +92,7 @@ try {
       return page.screenshot({ omitBackground: background === 'transparent' });
     };
     await writeFile(path.join(PUBLIC, 'favicon.ico'), icoFromPng(await icon(32), 32));
-    await writeFile(path.join(PUBLIC, 'apple-touch-icon.png'), await icon(180, 20, '#0d0c0b'));
+    await writeFile(path.join(PUBLIC, 'apple-touch-icon.png'), await icon(180, 20, '#f5efe3'));
     await writeFile(path.join(PUBLIC, 'icon-192.png'), await icon(192));
     await writeFile(path.join(PUBLIC, 'icon-512.png'), await icon(512));
 

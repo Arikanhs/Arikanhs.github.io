@@ -218,3 +218,95 @@ Each entry says what was chosen and why.
 - **Lighthouse run with `npx lighthouse@12`** as a one-off tool, not a project dependency.
 - **Static ASCII renderer rewritten for CPU-only devices:** glyph masks + one ImageData pass
   replace per-cell fillText (same look, ~50x less main-thread time on software canvas).
+
+## Home ASCII background (after the run)
+
+- **textmode.js, no new dependency.** Letters move cell to cell on the character grid,
+  which fits the terminal look. Considered: Canvas 2D (smoother, but loses the grid),
+  three.js (what spencerhong.com uses; ~500 KB for a 2D effect), tsParticles canvas mask
+  (forms one shape, cannot fly in or morph), GSAP (timing only).
+- **Shapes from Phosphor Icons "fill" (MIT)**, rasterized onto the grid at run time, so
+  they fit any screen size; notice in licenses/phosphor-icons.txt.
+- **Terminal narrowed to 48rem from 70rem up** (the narrowest that keeps the name on one
+  line) to make room beside it; below that the shape gets its own band under the terminal.
+- **Pause button** because the animation loops for more than 5 s (WCAG 2.2.2).
+- **`hasWebGL2` and `monoFont` moved to webgl.ts**, shared by both ASCII runtimes;
+  **`glyphMasks` exported from raster.ts** for the static bird.
+
+## Soft cream theme (after the run)
+
+- **One darker accent instead of two shades.** The old amber #ffb000 is 1.7:1 on cream,
+  too faint for text, focus rings and the current-page cursor. Burnt amber #925300 passes
+  AA as text on every surface and carries cream text as a fill, so every existing use of
+  the accent token still works.
+- **ASCII art reads the theme at run time** (`cssToken` in webgl.ts): the card background
+  and the bird's colors follow the tokens, so a palette change is one file.
+- **Project cards keep the cover images' own colors** (now ink-on-paper); a monochrome
+  version in the theme colors is a possible follow-up.
+- **Shapes: bird, detective, robot, chip, barbell**, all from Phosphor (MIT) so they share one drawing
+  style. Phosphor has no dumbbell; its "barbell" is drawn short with big plates and reads
+  as one. Optional per-shape `ink` token (the detective uses --color-shade: near-black on light pages, light steel on the blue home; the chip --color-fg).
+
+## Projects page: list and viewer (after the run)
+
+- **Native `<details name>` rows** instead of a custom listbox: keyboard, screen reader
+  and no-JS support for free, and browsers keep one row open. A small script syncs the
+  viewer and the URL.
+- **One viewer slot per project** (`[data-shot]`), the cover image for now. A slot can
+  later hold an interactive component without changing the list.
+- **No HTML ids on rows**: a #id anchor would scroll the whole page on desktop, where
+  only the list should scroll; the script scrolls instead (no-JS keeps the first row).
+
+## Page themes (after the run)
+
+- **Themes swap the tokens, not the components**: one `html[data-theme]` block per theme
+  in global.css, so every component, the ASCII art and the code already follow.
+- **Two accent roles**: `--color-accent` for fills and highlights, `--color-accent-text`
+  for text. The punk yellow and bright amber red cannot be AA text on their pages, and
+  forcing them dark would lose the color. In cream the two are the same.
+- **The wash goes from --color-bg to --color-bg-end**; text is checked against both ends,
+  which bound every point between them.
+- **Sub-pages share their tab's theme** (/projects/<id>/ is sky blue), so the image morph
+  between the list and a project page stays inside one palette.
+
+## Hover ripple on the home animation (after the run)
+
+- **Displace and re-shade, per frame, at draw time**: the ripple never moves the
+  particles themselves, so the shape is intact the moment the mouse leaves, and the
+  morph phases (hold timing included) are untouched.
+- **Mouse and pen only**: on touch a drag scrolls the page, and there is no hover.
+- **Pausing stops the ripple too**: the pause button means "nothing moves" (WCAG 2.2.2).
+- **The stage keeps pointer-events: none**: the pointer is read on window, so links and
+  the terminal above the background still get every click.
+
+## Shapes that act (after the run)
+
+- **Acts are poses applied at draw time**, like the hover ripple: one function per shape
+  maps a letter's place in the shape's 256 x 256 box and the time to an offset and a
+  glow. Shapes, particles and phase timing stay as they were, and acts work at any size.
+- **The bird's exit is a rigid flight**, not a burst: every letter gets the same path,
+  eased in like a take-off, and keeps its glyph, so it stays a bird until it is gone.
+- **Highlights use the hover accent** (accent-strong), so they read on every ink: the
+  jade robot, the near-black detective and the silver chip.
+- **The barbell is gone** at the owner's request.
+- **The bird's wing is found geometrically**: the icon's cut line runs parallel to the
+  back edge, so "across the back edge < 32 units" selects the wing without hand-made
+  masks; letters rotate about the shoulder, so nothing else in the shape moves.
+- **Covers for holes**: an eye is a hole, with no letters to move, so an act can also
+  draw letters into a round hole (the bird's eyelid). The wing selection does not need
+  the icon's cut line, so the bird drops it and stays one solid shape.
+- **The bird's wing is its own bright middle**, selected by letter density (the owner's
+  call, replacing a drawn-on wing): it lifts on top, and the body's mid tone fills the
+  spot it leaves, so the bird never shows a hole or a second wing.
+
+## Captions under the home shapes (after the run)
+
+- **Letters, not DOM text**: captions are cells of the formed shape, so they gather from
+  the scatter, flicker and ripple like everything else; acts leave them alone, and the
+  bird's caption scatters rather than flying off with it.
+- **A tiny pixel font drawn in '#' letters** beats a rasterized real font at this grid
+  size (filled cells read better, but the owner wants the animation's own letters).
+  One mode for all captions at a time (all big or all plain), so they match.
+- **data-box on the stage** (the shapes' box, CSS px) is for tests, like data-grid.
+- **Hat colors are tokens** (--color-hat-*), so a theme can retune them; one hat at a
+  time, a third of the hold each, with a short left-to-right wipe instead of a cut.

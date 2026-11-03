@@ -7,11 +7,11 @@ import { getImage } from 'astro:assets';
 
 interface Props {
   src: ImageMetadata | string;
-  /** Glyph ramp from dark to bright. */
+  /** Glyph ramp from dark to bright; by default dense glyphs mark the dark pixels on a light background and the bright ones on a dark background. */
   characters?: string;
   /** Cell size in CSS pixels. */
   cellSize?: number;
-  /** Background behind the glyphs (any CSS color). */
+  /** Background behind the glyphs (any CSS color); defaults to the page background. */
   background?: string;
   /** Stretch the image's brightness to use the whole ramp (auto-levels). */
   normalize?: boolean;
@@ -24,9 +24,9 @@ interface Props {
 
 const {
   src,
-  characters = ' .:-=+*#%@',
+  characters,
   cellSize = 8,
-  background = '#0d0c0b',
+  background,
   normalize = true,
   alt,
   intro = false,
@@ -46,7 +46,7 @@ const url = typeof src === 'string' ? src : (await getImage({ src, width: 640, f
   data-normalize={String(normalize)}
   data-ascii-state="idle"
   data-ascii-intro={intro ? '' : undefined}
-  style={`--ascii-bg: ${background}`}
+  style={background && `--ascii-bg: ${background}`}
   role={alt ? 'img' : undefined}
   aria-label={alt}
   aria-hidden={alt ? undefined : 'true'}
@@ -70,7 +70,7 @@ const url = typeof src === 'string' ? src : (await getImage({ src, width: 640, f
     width: 100%;
     height: 100%;
     overflow: hidden;
-    background-color: var(--ascii-bg);
+    background-color: var(--ascii-bg, var(--color-bg));
   }
 
   .ascii-image :global(canvas),

@@ -7,8 +7,13 @@ import PageHeader from '../../components/ui/PageHeader.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
 const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
-// Different box shapes show that the ASCII always covers its box.
+// Different box shapes show that the ASCII always covers its box: one box per
+// shape at least, reusing covers when there are fewer projects than shapes.
 const shapes = ['16 / 9', '1 / 1', '3 / 1'];
+const boxes = Array.from({ length: Math.max(projects.length, shapes.length) }, (_, i) => ({
+  project: projects[i % projects.length],
+  shape: shapes[i % shapes.length],
+}));
 ---
 
 <BaseLayout title="ASCII lab" description="Development page for the AsciiImage component.">
@@ -26,7 +31,7 @@ const shapes = ['16 / 9', '1 / 1', '3 / 1'];
       </div>
       <div class="field">
         <label for="characters">Character set, dark to bright</label>
-        <input id="characters" name="characters" type="text" value=" .:-=+*#%@" spellcheck="false" autocomplete="off" />
+        <input id="characters" name="characters" type="text" value="@%#*+=-:. " spellcheck="false" autocomplete="off" />
       </div>
       <fieldset class="field">
         <legend>Renderer</legend>
@@ -37,10 +42,10 @@ const shapes = ['16 / 9', '1 / 1', '3 / 1'];
 
     <ul class="boxes">
       {
-        projects.map((project, i) => (
+        boxes.map(({ project, shape }) => (
           <li>
             <figure>
-              <div class="box" style={`aspect-ratio: ${shapes[i % shapes.length]}`}>
+              <div class="box" style={`aspect-ratio: ${shape}`}>
                 <AsciiImage src={project.data.cover} />
               </div>
               <figcaption>

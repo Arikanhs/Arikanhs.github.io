@@ -1,22 +1,40 @@
 @import "tailwindcss";
 
 /*
- * Design tokens: "phosphor notebook" (see CLAUDE.md, Design direction).
- * One accent only: amber. Tailwind's default palette is removed so these
- * tokens are the only colors available as utilities (bg-bg, text-muted, ...).
+ * Design tokens (see CLAUDE.md, Design direction). The default is soft cream
+ * paper with warm brown ink; the home page and the first two tabs have their own
+ * themes below. The page background is a left-to-right wash from --color-bg to
+ * --color-bg-end. The accent comes in two roles:
+ *   accent, accent-strong (hover): fills and highlights, with accent-ink text
+ *     on top. May be too light to read as text (yellow on white).
+ *   accent-text: accent-colored text, link hovers and focus rings. AA (4.5:1)
+ *     on both ends of the wash and on every surface, like fg, muted and faint.
+ * Tailwind's default palette is removed so these tokens are the only colors
+ * available as utilities.
  */
 @theme {
   --color-*: initial;
-  --color-bg: #0d0c0b;
-  --color-surface: #151311;
-  --color-surface-2: #1d1a17;
-  --color-line: #2c2824;
-  --color-fg: #ece6dc;
-  --color-muted: #a39a8e;
-  --color-faint: #8a8176;
-  --color-accent: #ffb000;
-  --color-accent-strong: #ffc94a;
-  --color-accent-ink: #1a1100;
+  --color-bg: #f5efe3;
+  --color-bg-end: #f5efe3;
+  --color-surface: #fbf8f1;
+  --color-surface-2: #ede5d6;
+  --color-line: #d9cdb8;
+  --color-fg: #2b241d;
+  --color-muted: #5e5449;
+  --color-faint: #6f6458;
+  --color-accent: #925300;
+  --color-accent-strong: #7a4500;
+  --color-accent-ink: #fffaf0;
+  --color-accent-text: #925300;
+  /* The detective's ink (its hat and caption): near-black on light pages. */
+  --color-shade: #2b241d;
+  /*
+   * The detective's hat cycles white, blue, red while it holds (acts.ts): soft,
+   * medium-light tones that sit with the animation's jade and steel on the blue home.
+   */
+  --color-hat-white: #eef3fa;
+  --color-hat-blue: #5ccfff;
+  --color-hat-red: #ff6b66;
 
   --text-display: clamp(2.25rem, 1.5rem + 3.2vw, 3.75rem);
   --text-display--line-height: 1.05;
@@ -34,10 +52,117 @@
   --default-mono-font-family: var(--font-plex-mono);
 }
 
+/*
+ * Page themes, set by BaseLayout as <html data-theme>. Contrast of every pair is
+ * tested in tests/e2e/themes.spec.ts.
+ */
+
+/* Home: sapphire into ocean blue, with neon jade. */
+html[data-theme='home'] {
+  color-scheme: dark;
+  --color-bg: #0f52ba;
+  --color-bg-end: #035e8c;
+  --color-surface: #0a3a7e;
+  --color-surface-2: #0c4794;
+  --color-line: #4f82cc;
+  --color-fg: #f4f8ff;
+  --color-muted: #d9e7f8;
+  --color-faint: #c2d7f2;
+  --color-accent: #3bf5b0;
+  --color-accent-strong: #9cffd8;
+  --color-accent-ink: #04203a;
+  --color-accent-text: #3bf5b0;
+  /* Light steel: the detective and its caption stand out on the blue (4.7:1). */
+  --color-shade: #cdd8ea;
+}
+
+/* Projects: sky blue into cloudy white, with amber red. */
+html[data-theme='projects'] {
+  --color-bg: #87ceeb;
+  --color-bg-end: #f3f6f9;
+  --color-surface: #fbfdff;
+  --color-surface-2: #e1ecf3;
+  --color-line: #a9c4d6;
+  --color-fg: #0c2134;
+  --color-muted: #24425c;
+  --color-faint: #2f516e;
+  --color-accent: #d33a1c;
+  --color-accent-strong: #a82a12;
+  --color-accent-ink: #ffffff;
+  --color-accent-text: #9a2414;
+  --color-shade: #0c2134;
+}
+
+/* Publications: red orange into snowy white, with punk yellow. */
+html[data-theme='publications'] {
+  --color-bg: #ff5349;
+  --color-bg-end: #fffafa;
+  --color-surface: #ffffff;
+  --color-surface-2: #fbede8;
+  --color-line: #f0c2b3;
+  --color-fg: #1e0904;
+  --color-muted: #4a1a0e;
+  --color-faint: #4a1a0e;
+  --color-accent: #ffe11a;
+  --color-accent-strong: #ffd000;
+  --color-accent-ink: #1e0904;
+  --color-accent-text: #521100;
+  --color-shade: #1e0904;
+}
+
+/* Resume: onyx black into electric indigo, with tropical mint. Prints black on white. */
+html[data-theme='resume'] {
+  color-scheme: dark;
+  --color-bg: #141416;
+  --color-bg-end: #6f00ff;
+  --color-surface: #1b1a24;
+  --color-surface-2: #272340;
+  --color-line: #5b4f9e;
+  --color-fg: #f6f4ff;
+  --color-muted: #e2dcfb;
+  --color-faint: #d8d0f8;
+  --color-accent: #8ef5cf;
+  --color-accent-strong: #c4fbe6;
+  --color-accent-ink: #121117;
+  --color-accent-text: #8ef5cf;
+  --color-shade: #0a0a0c;
+}
+
+/* Blog: deep violet (where the resume's indigo leaves off) into black, with amber. */
+html[data-theme='blog'] {
+  color-scheme: dark;
+  --color-bg: #2a0a6b;
+  --color-bg-end: #09090b;
+  --color-surface: #16131f;
+  --color-surface-2: #221c33;
+  --color-line: #3e3560;
+  --color-fg: #f5f2fb;
+  --color-muted: #d2cbe3;
+  --color-faint: #aaa1c2;
+  --color-accent: #ffb224;
+  --color-accent-strong: #ffcb66;
+  --color-accent-ink: #1a1000;
+  --color-accent-text: #ffb224;
+  --color-shade: #000000;
+}
+
 :root {
   --gutter: clamp(1rem, 0.6rem + 1.8vw, 2rem);
   --section: clamp(4rem, 3rem + 4vw, 7rem);
   --header-h: 3.75rem;
+
+  /*
+   * Code block colors (src/lib/code-theme.ts), from the page's tokens so every
+   * theme gets its own. Mixes of fg and accent-text are AA wherever both are.
+   */
+  --code-bg: var(--color-surface);
+  --code-fg: var(--color-fg);
+  --code-comment: var(--color-muted);
+  --code-punctuation: var(--color-muted);
+  --code-keyword: var(--color-accent-text);
+  --code-number: color-mix(in oklab, var(--color-accent-text) 80%, var(--color-fg));
+  --code-type: color-mix(in oklab, var(--color-accent-text) 60%, var(--color-fg));
+  --code-string: color-mix(in oklab, var(--color-accent-text) 40%, var(--color-fg));
 }
 
 @keyframes blink {
@@ -48,7 +173,7 @@
 
 @layer base {
   html {
-    color-scheme: dark;
+    color-scheme: light;
     background-color: var(--color-bg);
     color: var(--color-fg);
     scroll-padding-top: calc(var(--header-h) + 1rem);
@@ -60,18 +185,20 @@
     flex-direction: column;
     font-size: 1.0625rem;
     line-height: 1.65;
-    /* A soft amber glow at the top and a faint dot grid ("graph paper"). */
+    /* An accent glow at the top, a faint dot grid ("graph paper") and the wash. */
     background-image:
       radial-gradient(
         ellipse 70% 60% at 50% 0%,
-        color-mix(in oklab, var(--color-accent) 8%, transparent),
+        color-mix(in oklab, var(--color-accent) 7%, transparent),
         transparent 70%
       ),
-      radial-gradient(circle at 1px 1px, color-mix(in oklab, var(--color-fg) 9%, transparent) 1px, transparent 0);
+      radial-gradient(circle at 1px 1px, color-mix(in oklab, var(--color-fg) 12%, transparent) 1px, transparent 0),
+      linear-gradient(to right, var(--color-bg), var(--color-bg-end));
     background-size:
       100% 34rem,
-      22px 22px;
-    background-repeat: no-repeat, repeat;
+      22px 22px,
+      100% 100%;
+    background-repeat: no-repeat, repeat, no-repeat;
   }
 
   h1,
@@ -92,7 +219,7 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-accent);
+    outline: 2px solid var(--color-accent-text);
     outline-offset: 3px;
     border-radius: 2px;
   }
@@ -103,7 +230,11 @@
 }
 
 @layer components {
-  /* The phosphor cursor: blinks a few times (under 5 s), then rests solid. */
+  /*
+   * The phosphor cursor: blinks a few times (under 5 s), then rests solid. The
+   * hairline in accent-text keeps it visible where the accent is close to the
+   * page (yellow on white); elsewhere the two match.
+   */
   .caret {
     display: inline-block;
     width: 0.55em;
@@ -111,6 +242,7 @@
     margin-left: 0.14em;
     vertical-align: -0.06em;
     background-color: var(--color-accent);
+    box-shadow: inset 0 0 0 1px var(--color-accent-text);
     animation: blink 1.1s steps(1, end) 4;
   }
 
@@ -133,11 +265,11 @@
     transform: none;
   }
 
-  /* Inline text links: amber underline that thickens on hover. */
+  /* Inline text links: accent underline that thickens on hover. */
   .link {
     color: var(--color-fg);
     text-decoration-line: underline;
-    text-decoration-color: color-mix(in oklab, var(--color-accent) 70%, transparent);
+    text-decoration-color: color-mix(in oklab, var(--color-accent-text) 70%, transparent);
     text-decoration-thickness: 1px;
     text-underline-offset: 0.22em;
     transition:
@@ -146,8 +278,9 @@
   }
 
   .link:hover {
-    color: var(--color-accent-strong);
-    text-decoration-color: var(--color-accent-strong);
+    color: var(--color-accent-text);
+    text-decoration-color: var(--color-accent-text);
+    text-decoration-thickness: 2px;
   }
 }
 
@@ -221,12 +354,12 @@
   .prose a {
     color: var(--color-fg);
     text-decoration-line: underline;
-    text-decoration-color: color-mix(in oklab, var(--color-accent) 70%, transparent);
+    text-decoration-color: color-mix(in oklab, var(--color-accent-text) 70%, transparent);
     text-underline-offset: 0.22em;
   }
 
   .prose a:hover {
-    color: var(--color-accent-strong);
+    color: var(--color-accent-text);
   }
 
   .prose strong {
@@ -252,7 +385,7 @@
   }
 
   .prose li::marker {
-    color: var(--color-accent);
+    color: var(--color-accent-text);
   }
 
   .prose blockquote {

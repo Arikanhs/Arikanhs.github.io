@@ -18,10 +18,21 @@
 - Deploy: GitHub Pages via withastro/action on every push to main.
 
 ## Design direction
-- Dark terminal aesthetic, monospace accents, one accent color.
-- Palette (tokens in src/styles/global.css): bg #0d0c0b, surface #151311, surface-2 #1d1a17,
-  line #2c2824, fg #ece6dc, muted #a39a8e, faint #8a8176. The one accent is amber #ffb000
-  (hover #ffc94a, text on amber #1a1100). No other hues.
+- Terminal aesthetic, monospace accents, one accent color per page theme.
+- Palette (tokens in src/styles/global.css). Default (the 404 page) is soft cream paper:
+  bg #f5efe3, surface #fbf8f1, surface-2 #ede5d6, line #d9cdb8, fg #2b241d, muted #5e5449,
+  faint #6f6458; accent burnt amber #925300 (hover #7a4500, text on amber #fffaf0).
+- Page themes (html data-theme, set by BaseLayout): a left-to-right wash plus one accent.
+  - Home: sapphire #0f52ba into ocean blue #035e8c, a bit of neon jade #3bf5b0.
+  - Projects: sky blue #87ceeb into cloudy white #f3f6f9, a bit of amber red #d33a1c.
+  - Publications: red orange #ff5349 into snowy white #fffafa, a bit of punk yellow #ffe11a.
+  - Resume: onyx black #141416 into electric indigo #6f00ff, a bit of tropical mint #8ef5cf.
+    It still prints black on white (the CV PDF).
+  - Blog: deep violet #2a0a6b into black #09090b, a bit of amber #ffb224.
+- The accent is for fills; --color-accent-text is its AA version for text, link hovers and
+  focus rings. No other hues; tests/e2e/themes.spec.ts checks every pair's contrast.
+- Code blocks take their colors from the page's tokens (--code-* in global.css).
+- Colors come from these tokens only; the ASCII art reads them at run time.
 - Fonts (self-hosted with Astro's Fonts API): IBM Plex Mono for interface and headings,
   Source Serif 4 for reading text.
 - Signature detail: the amber block cursor after page titles, also marking the current nav item.

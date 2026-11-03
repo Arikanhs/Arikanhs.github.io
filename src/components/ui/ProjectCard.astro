@@ -75,8 +75,8 @@ const Heading = headingLevel === 2 ? 'h2' : 'h3';
 
   /*
    * Scrim: from transparent to the page background at 90% before the text
-   * starts. Even over pure white glyphs that keeps fg at 12.7:1 and muted at
-   * 5.6:1 (faint would fail, so it is not used here).
+   * starts. Even over pure black glyphs that keeps fg at 10.7:1 and muted at
+   * 5.2:1 (faint would fail, so it is not used here).
    */
   .body {
     padding: 3.5rem 1.5rem 1.5rem;
@@ -111,7 +111,7 @@ const Heading = headingLevel === 2 ? 'h2' : 'h3';
   }
 
   .stretched:focus-visible::after {
-    outline: 2px solid var(--color-accent);
+    outline: 2px solid var(--color-accent-text);
     outline-offset: -2px;
   }
 

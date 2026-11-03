@@ -56,3 +56,10 @@ test('hero links point at GitHub, email and the CV', async ({ page }) => {
   await expect(hero.getByRole('link', { name: 'email' })).toHaveAttribute('href', `mailto:${SITE.email}`);
   await expect(hero.getByRole('link', { name: 'cv' })).toHaveAttribute('href', /^\/(resume\/|cv\.pdf)$/);
 });
+
+test('without hardware WebGL the background shows the bird once, with no pause button', async ({ page }) => {
+  // Playwright's headless shell only has software WebGL, which counts as none.
+  await page.goto('/');
+  await expect(page.locator('[data-hero-ascii]')).toHaveAttribute('data-hero-ascii', 'static', { timeout: 10_000 });
+  await expect(page.locator('[data-hero-ascii-toggle]')).toBeHidden();
+});

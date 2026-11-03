@@ -4,7 +4,8 @@
 // upgrades to a live textmode.js instance (at most MAX_LIVE at a time).
 // textmode.js is only downloaded at that point.
 import type { TextmodeTexture, Textmodifier } from 'textmode.js';
-import { drawStaticAscii, prepareImage, sampleCells, type PreparedImage } from './raster';
+import { drawStaticAscii, parseColor, prepareImage, sampleCells, type PreparedImage } from './raster';
+import { cssToken, hasWebGL2, monoFont, resizeTextmodeCanvas } from './webgl';
 
 export type AsciiState = 'idle' | 'static' | 'live';
 
@@ -57,32 +58,20 @@ const REVEAL_MS = 600;
 const DISSOLVE_MS = 450;
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+/**
+ * The glyph ramp from dark to bright pixels: dense glyphs for the dark ones on
+ * a light background (ink on paper), for the bright ones on a dark background.
+ */
+function rampFor(background: string) {
+  const [r, g, b] = parseColor(background);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b < 128 ? ' .:-=+*#%@' : '@%#*+=-:. ';
+}
 const controllers = new Map<HTMLElement, AsciiController>();
 const waiting = new Set<AsciiController>();
 
-let webgl2: boolean | undefined;
-/**
- * WebGL2 on real hardware. Software renderers count as unavailable: they are
- * slower than the static fallback. Browsers flag most of them through
- * failIfMajorPerformanceCaveat; the renderer name catches the rest.
- */
-function hasWebGL2() {
-  if (webgl2 === undefined) {
-    const gl = document.createElement('canvas').getContext('webgl2', { failIfMajorPerformanceCaveat: true });
-    const info = gl?.getExtension('WEBGL_debug_renderer_info');
-    const renderer = gl && info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL)) : '';
-    webgl2 = !!gl && !/swiftshader|llvmpipe|software/i.test(renderer);
-    gl?.getExtension('WEBGL_lose_context')?.loseContext();
-  }
-  return webgl2;
-}
-
 let textmodeModule: Promise<typeof import('textmode.js')> | undefined;
 const loadTextmode = () => (textmodeModule ??= import('textmode.js'));
-
-function monoFont() {
-  return getComputedStyle(document.documentElement).getPropertyValue('--font-plex-mono').trim() || 'monospace';
-}
 
 function liveCount() {
   let count = 0;
@@ -123,11 +112,12 @@ class AsciiController {
 
   constructor(readonly root: HTMLElement) {
     const data = root.dataset;
+    const background = data.background || cssToken('--color-bg') || '#f5efe3';
     this.config = {
       src: data.src ?? '',
-      characters: data.characters || ' .:-=+*#%@',
+      characters: data.characters || rampFor(background),
       cellSize: Number(data.cellSize) || 8,
-      background: data.background || '#0d0c0b',
+      background,
       normalize: data.normalize !== 'false',
       forceStatic: false,
     };
@@ -445,7 +435,7 @@ class AsciiController {
           live.dpr = dpr;
           live.tm.fontSize(this.config.cellSize * dpr);
         }
-        live.tm.resizeCanvas(Math.round(width * dpr), Math.round(height * dpr));
+        resizeTextmodeCanvas(live.tm, live.canvas, Math.round(width * dpr), Math.round(height * dpr));
         live.tm.redraw();
         this.showGrid(live.tm);
       }

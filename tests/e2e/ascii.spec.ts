@@ -170,6 +170,22 @@ test('the cell-size slider, character set and renderer switch update the output'
   await expect(first).toHaveAttribute('data-ascii-state', 'live', { timeout: 15_000 });
 });
 
+test.describe('on a high-density screen', () => {
+  test.use({ deviceScaleFactor: 2 });
+
+  test('a live canvas still fills its box after a resize', async ({ page }) => {
+    await openWithAscii(page, LAB);
+    const first = roots(page).first();
+    await expect(first).toHaveAttribute('data-ascii-state', 'live', { timeout: 15_000 });
+    const grid = (await first.getAttribute('data-ascii-grid'))!;
+    await page.setViewportSize({ width: 900, height: 800 });
+    // Wait until the live instance has handled the resize, then compare sizes.
+    await expect(first).not.toHaveAttribute('data-ascii-grid', grid);
+    const box = (await first.boundingBox())!;
+    expect((await first.locator('canvas.ascii-live').boundingBox())!.width).toBe(box.width);
+  });
+});
+
 test('the production build has no lab page', () => {
   expect(fs.existsSync(`${DIST}/lab`)).toBe(false);
 });

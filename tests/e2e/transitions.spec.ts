@@ -23,66 +23,62 @@ async function instrument(page: Page) {
 
 const transitions = (page: Page) => page.evaluate(() => (window as unknown as { transitions: string[] }).transitions);
 
-async function settled(page: Page) {
-  const roots = page.locator('[data-ascii]');
-  await expect(roots.first()).toHaveAttribute('data-ascii-state', /static|live/, { timeout: 15_000 });
-}
+const ROWS = 'details[data-project]';
+const readMore = (page: Page) => page.locator(`${ROWS}[open]`).getByRole('link', { name: /Read more/ });
 
-test('a card morphs into its project page and Back morphs it back', async ({ page }) => {
+test('the shown project morphs into its project page and Back returns to it', async ({ page }) => {
   await instrument(page);
-  await openWithAscii(page, '/projects/');
+  await openWithAscii(page, '/projects/', ROWS);
   await page.evaluate(() => ((window as unknown as { marker: number }).marker = 42));
-  const card = page.locator('article.card').first();
-  const name = await card.evaluate((el) => getComputedStyle(el).viewTransitionName);
+  const shot = page.locator('[data-shot]:not([hidden])');
+  const name = await shot.evaluate((el) => getComputedStyle(el).viewTransitionName);
   expect(name).toMatch(/^project-/);
   const slug = name.replace('project-', '');
 
-  await card.locator('a.stretched').click();
+  await readMore(page).click();
   await expect(page).toHaveURL(`/projects/${slug}/`);
   const header = page.locator('header.hero');
   await expect(header).toBeVisible();
   expect(await header.evaluate((el) => getComputedStyle(el).viewTransitionName)).toBe(name);
-  // Client-side navigation (no reload) through a view transition that captured the card.
+  // Client-side navigation (no reload) through a view transition that captured the image.
   expect(await page.evaluate(() => (window as unknown as { marker?: number }).marker)).toBe(42);
   expect((await transitions(page)).at(-1)).toContain(name);
 
   await page.goBack();
-  await expect(page).toHaveURL('/projects/');
-  await expect(page.locator('article.card').first()).toBeVisible();
+  await expect(page).toHaveURL(/\/projects\/(#[\w-]+)?$/);
+  await expect(page.locator(`[data-shot="${slug}"]`)).toBeVisible();
   expect(await page.evaluate(() => (window as unknown as { marker?: number }).marker)).toBe(42);
   expect((await transitions(page)).at(-1)).toContain(name);
 });
 
-test('ASCII still renders after several navigations, within the context budget', async ({ page }) => {
+test('project pages render live ASCII after many navigations, and Back reopens the project', async ({ page }) => {
   test.setTimeout(90_000);
   const problems = collectProblems(page);
-  await openWithAscii(page, '/projects/');
-  const slugs = await page
-    .locator('article.card a.stretched')
-    .evaluateAll((links) => links.map((a) => (a as HTMLAnchorElement).pathname));
+  await openWithAscii(page, '/projects/', ROWS);
+  const ids = await page.locator(ROWS).evaluateAll((els) => els.map((el) => (el as HTMLElement).dataset.project ?? ''));
   for (let round = 0; round < 3; round += 1) {
-    for (const path of slugs) {
-      await page.locator(`a.stretched[href="${path}"]`).click();
-      await expect(page).toHaveURL(path);
-      await settled(page);
+    for (const id of ids) {
+      const row = page.locator(`${ROWS}[data-project="${id}"]`);
+      if (!(await row.evaluate((el) => (el as HTMLDetailsElement).open))) await row.locator('summary').click();
+      await readMore(page).click();
+      await expect(page).toHaveURL(`/projects/${id}/`);
       await expect(page.locator('header.hero [data-ascii]')).toHaveAttribute('data-ascii-state', 'live', {
         timeout: 15_000,
       });
       await page.goBack();
-      await expect(page).toHaveURL('/projects/');
-      await settled(page);
+      await expect(page).toHaveURL(/\/projects\/(#[\w-]+)?$/);
+      await expect(row).toHaveJSProperty('open', true);
     }
   }
-  // Old pages' contexts are released: only this page's on-screen roots are live.
-  expect(await page.locator('canvas.ascii-live').count()).toBeLessThanOrEqual(6);
-  await expect(page.locator('[data-ascii-state="live"]').first()).toBeAttached({ timeout: 15_000 });
+  // The project pages' WebGL contexts were released; /projects itself has none.
+  await expect(page.locator('canvas.ascii-live')).toHaveCount(0);
   expect(problems).toEqual([]);
 });
 
 test('navigation works without animation under reduced motion', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await openWithAscii(page, '/projects/');
-  await page.locator('article.card a.stretched').first().click();
+  await openWithAscii(page, '/projects/', ROWS);
+  await readMore(page).click();
   await expect(page.locator('header.hero')).toBeVisible();
   await expect(page.locator('header.hero [data-ascii]')).toHaveAttribute('data-ascii-state', 'static', {
     timeout: 15_000,

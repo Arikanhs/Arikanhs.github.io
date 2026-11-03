@@ -1,0 +1,66 @@
+---
+// Animated ASCII background for the home hero (see morph.ts). Decorative: the
+// stage is hidden from assistive technology and ignores the pointer. Place it
+// inside a positioned wrapper; it fills the wrapper, behind its content.
+// The pause button (WCAG 2.2.2) only appears while the animation runs.
+interface Props {
+  /** CSS selector of the element the shape should sit beside (desktop). */
+  avoid?: string;
+}
+
+const { avoid } = Astro.props;
+---
+
+<div class="stage" data-hero-ascii data-avoid={avoid} aria-hidden="true">
+  <canvas></canvas>
+</div>
+<button type="button" class="toggle" data-hero-ascii-toggle hidden>Pause animation</button>
+
+<script>
+  import { initHeroAscii } from './morph';
+
+  initHeroAscii();
+  document.addEventListener('astro:page-load', initHeroAscii);
+</script>
+
+<style>
+  .stage {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .stage :global(canvas) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .toggle {
+    position: absolute;
+    right: max(var(--gutter), calc((100% - var(--container-page)) / 2 + var(--gutter)));
+    bottom: 0.75rem;
+    padding: 0.25rem 0.625rem;
+    border: 1px solid var(--color-line);
+    border-radius: 2px;
+    background-color: var(--color-surface);
+    color: var(--color-muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition:
+      color 150ms,
+      border-color 150ms;
+  }
+
+  .toggle:hover {
+    border-color: var(--color-accent);
+    color: var(--color-fg);
+  }
+
+  .toggle[hidden] {
+    display: none;
+  }
+</style>

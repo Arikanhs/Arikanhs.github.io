@@ -3,12 +3,12 @@ import { expect, type Locator, type Page } from '@playwright/test';
 /**
  * Opens a page on the dev server once it has content. Right after `astro dev`
  * starts it may still be syncing the content store, and a page rendered in that
- * window has no ASCII roots; retry until it does.
+ * window has no ASCII roots; retry until `selector` is there.
  */
-export async function openWithAscii(page: Page, path: string) {
+export async function openWithAscii(page: Page, path: string, selector = '[data-ascii]') {
   await expect(async () => {
     await page.goto(path, { timeout: 10_000 });
-    await expect(page.locator('[data-ascii]').first()).toBeAttached({ timeout: 2_000 });
+    await expect(page.locator(selector).first()).toBeAttached({ timeout: 2_000 });
   }).toPass({ timeout: 30_000 });
 }
 

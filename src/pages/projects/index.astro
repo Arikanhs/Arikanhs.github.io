@@ -1,15 +1,336 @@
 ---
-import PageHeader from '../../components/ui/PageHeader.astro';
-import ProjectGrid from '../../components/ui/ProjectGrid.astro';
+// Projects as a split view: the list on the left, a viewer on the right (the
+// layout of a map app). Each row is a native <details> (keyboard and no-JS
+// friendly, one open at a time); opening a row shows that project in the
+// viewer and puts it in the URL (#id), so a refresh or a shared link reopens it.
+// The rows have no HTML id on purpose: the browser would scroll the whole page
+// to the anchor; the script scrolls only what is needed (the list, on desktop).
+// The viewer holds one slot per project: the cover image for now, an
+// interactive view later.
+import { Image } from 'astro:assets';
+import TagList from '../../components/ui/TagList.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getProjects } from '../../lib/content';
+import { displayUrl } from '../../lib/format';
 
 const projects = await getProjects();
 ---
 
 <BaseLayout title="Projects" description="Research code, tools and side projects by Hasan Serdar Arikan.">
-  <div class="container-page">
-    <PageHeader title="Projects" lede="Research code, tools and side projects, each with a link to its repository." />
-    <ProjectGrid projects={projects} label="Projects" />
+  <div class="explorer">
+    <header class="head">
+      <p class="path">~/projects</p>
+      <h1 class="title">Projects<span class="caret" aria-hidden="true"></span></h1>
+      <p class="count">
+        <strong>{projects.length}</strong>{' '}
+        {projects.length === 1 ? 'project' : 'projects'} · research code, tools and side projects
+      </p>
+    </header>
+
+    <ul class="list" aria-label="Projects">
+      {
+        projects.map((project, i) => {
+          const { title, summary, tags, repo, demo, date } = project.data;
+          return (
+            <li>
+              <details class="item" name="project" data-project={project.id} open={i === 0}>
+                <summary>
+                  <span class="badge">{date.getUTCFullYear()}</span>
+                  <span class="label">
+                    <span class="name">{title}</span>
+                    <span class="meta">{tags.slice(0, 3).join(' · ')}</span>
+                  </span>
+                  <svg class="chevron" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+                    <path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" />
+                  </svg>
+                </summary>
+                <div class="body">
+                  <p class="summary">{summary}</p>
+                  <TagList tags={tags} />
+                  <p class="links">
+                    <a class="link" href={`/projects/${project.id}/`}>
+                      Read more<span aria-hidden="true"> →</span>
+                    </a>
+                    <a class="link" href={repo}>
+                      {displayUrl(repo)}
+                      <span aria-hidden="true"> ↗</span>
+                    </a>
+                    {demo && (
+                      <a class="link" href={demo}>
+                        Demo<span aria-hidden="true"> ↗</span>
+                      </a>
+                    )}
+                  </p>
+                </div>
+              </details>
+            </li>
+          );
+        })
+      }
+    </ul>
+
+    <div class="viewer">
+      {
+        projects.map((project, i) => (
+          <figure class="shot" data-shot={project.id} hidden={i !== 0} transition:name={`project-${project.id}`}>
+            <Image
+              src={project.data.cover}
+              alt={`Cover image for ${project.data.title}`}
+              widths={[640, 960, 1200]}
+              sizes="(min-width: 56rem) 66vw, 100vw"
+              loading={i === 0 ? 'eager' : 'lazy'}
+              fetchpriority={i === 0 ? 'high' : undefined}
+            />
+            <figcaption>{project.data.title}</figcaption>
+          </figure>
+        ))
+      }
+    </div>
   </div>
 </BaseLayout>
+
+<script>
+  /** Opens the project named in the URL (#id), if there is one. */
+  function openFromHash() {
+    const item = document.querySelector<HTMLDetailsElement>(`details[data-project="${CSS.escape(location.hash.slice(1))}"]`);
+    if (item) item.open = true;
+  }
+
+  function initProjects() {
+    const items = [...document.querySelectorAll<HTMLDetailsElement>('details[data-project]')];
+    const shots = [...document.querySelectorAll<HTMLElement>('[data-shot]')];
+    if (items.length === 0) return;
+
+    const show = (id: string) => {
+      for (const shot of shots) shot.hidden = shot.dataset.shot !== id;
+    };
+
+    for (const item of items) {
+      item.addEventListener('toggle', () => {
+        if (!item.open) return;
+        // One open at a time, also where <details name> is not supported yet.
+        for (const other of items) if (other !== item) other.open = false;
+        const id = item.dataset.project ?? '';
+        show(id);
+        history.replaceState(history.state, '', `#${id}`);
+        // Rows above may have just closed: keep this row's title in view (on phones,
+        // below the sticky viewer; see scroll-margin-top).
+        const smooth = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+        item.scrollIntoView({ block: 'nearest', behavior: smooth ? 'smooth' : 'auto' });
+      });
+    }
+
+    openFromHash();
+  }
+
+  document.addEventListener('astro:page-load', initProjects);
+  window.addEventListener('hashchange', openFromHash);
+</script>
+
+<style>
+  .explorer {
+    display: grid;
+    grid-template-areas: 'head' 'viewer' 'list';
+  }
+
+  .head {
+    grid-area: head;
+    padding: 1.75rem var(--gutter) 1.25rem;
+  }
+
+  .path {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--color-muted);
+  }
+
+  .title {
+    margin-top: 0.25rem;
+    font-size: clamp(2rem, 1.6rem + 1.6vw, 2.75rem);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+  }
+
+  .count {
+    margin-top: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--color-muted);
+  }
+
+  .count strong {
+    color: var(--color-fg);
+    font-weight: 600;
+  }
+
+  .list {
+    grid-area: list;
+    padding: 0 var(--gutter) 2rem;
+  }
+
+  .item {
+    border-bottom: 1px solid var(--color-line);
+    /* Phones: the sticky header and viewer cover the top of the screen. */
+    scroll-margin-top: calc(var(--header-h) + 1px + min(100vw / 1.5, 40dvh) + 0.5rem);
+  }
+
+  summary {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 0.25rem;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .badge {
+    display: grid;
+    place-items: center;
+    min-width: 3.5rem;
+    padding: 0.5rem 0.375rem;
+    border-radius: 3px;
+    background-color: var(--color-surface-2);
+    color: var(--color-fg);
+    font-family: var(--font-mono);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    transition:
+      background-color 150ms,
+      color 150ms;
+  }
+
+  .item[open] .badge,
+  summary:hover .badge {
+    background-color: var(--color-accent);
+    color: var(--color-accent-ink);
+  }
+
+  .label {
+    display: grid;
+    gap: 0.125rem;
+    min-width: 0;
+  }
+
+  .name {
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  .meta {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--color-muted);
+  }
+
+  .chevron {
+    color: var(--color-muted);
+    transition: transform 200ms ease-out;
+  }
+
+  .item[open] .chevron {
+    transform: rotate(180deg);
+  }
+
+  .body {
+    display: grid;
+    gap: 0.875rem;
+    padding: 0 0.25rem 1.25rem calc(3.5rem + 1.25rem);
+  }
+
+  .summary {
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    color: var(--color-muted);
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+  }
+
+  .viewer {
+    grid-area: viewer;
+    position: sticky;
+    top: calc(var(--header-h) + 1px);
+    z-index: 1;
+    aspect-ratio: 3 / 2;
+    max-height: 40dvh;
+    width: 100%;
+    overflow: hidden;
+    border-block: 1px solid var(--color-line);
+    background-color: var(--color-surface-2);
+  }
+
+  .shot {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+  }
+
+  .shot[hidden] {
+    display: none;
+  }
+
+  .shot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  figcaption {
+    position: absolute;
+    bottom: 0.75rem;
+    left: 0.75rem;
+    max-width: calc(100% - 1.5rem);
+    padding: 0.25rem 0.625rem;
+    border: 1px solid var(--color-line);
+    border-radius: 2px;
+    background-color: color-mix(in oklab, var(--color-surface) 92%, transparent);
+    color: var(--color-fg);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+  }
+
+  /* Side by side: the list scrolls on its own, the viewer fills the rest. */
+  @media (min-width: 56rem) {
+    .explorer {
+      grid-template-columns: minmax(22rem, 34%) 1fr;
+      grid-template-rows: auto 1fr;
+      grid-template-areas: 'head viewer' 'list viewer';
+      height: calc(100dvh - var(--header-h) - 1px);
+    }
+
+    .head,
+    .list {
+      border-right: 1px solid var(--color-line);
+    }
+
+    .list {
+      overflow-y: auto;
+    }
+
+    .item {
+      scroll-margin-top: 0;
+    }
+
+    .viewer {
+      position: relative;
+      top: auto;
+      aspect-ratio: auto;
+      max-height: none;
+      height: 100%;
+      border-block: 0;
+    }
+  }
+</style>

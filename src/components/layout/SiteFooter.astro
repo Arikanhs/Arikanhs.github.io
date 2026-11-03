@@ -44,7 +44,7 @@ const links = [
   }
 
   .prompt {
-    color: var(--color-accent);
+    color: var(--color-accent-text);
   }
 
   .links {
@@ -69,14 +69,14 @@ const links = [
     color: var(--color-fg);
     overflow-wrap: anywhere;
     text-decoration-line: underline;
-    text-decoration-color: color-mix(in oklab, var(--color-accent) 55%, transparent);
+    text-decoration-color: color-mix(in oklab, var(--color-accent-text) 55%, transparent);
     text-underline-offset: 0.3em;
     transition: color 150ms;
   }
 
   .links a:hover .value {
-    color: var(--color-accent-strong);
-    text-decoration-color: var(--color-accent-strong);
+    color: var(--color-accent-text);
+    text-decoration-color: var(--color-accent-text);
   }
 
   .meta {

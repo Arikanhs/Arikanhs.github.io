@@ -39,6 +39,8 @@ export default defineConfig({
     },
     {
       command: `npm run dev -- --port ${DEV_PORT} --host 127.0.0.1 --ignore-lock`,
+      // Tests need the real home page at "/" (see devOnlyPages in astro.config.mjs).
+      env: { LAB_HOME: 'off' },
       url: `http://127.0.0.1:${DEV_PORT}/`,
       reuseExistingServer: false,
       timeout: 120_000,

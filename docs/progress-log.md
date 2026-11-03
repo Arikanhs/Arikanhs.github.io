@@ -317,3 +317,282 @@ Autonomous build run started 2026-11-01. Instructions: docs/run-instructions.md
 - Final checks: build OK (15 pages), astro check 0/0/0, `npm test` 121 passed,
   npm audit 0 vulnerabilities, privacy check clean.
 - Keep-awake (caffeinate) stopped at the end of the run.
+
+## After the run: project removed, home ASCII background (2026-11-02)
+- Removed the Image2ASCII project (not a project of mine): its page, cover, cover
+  generator entry and TODO item. Tests that named it now use other projects; the
+  "project without related publications" test was dropped (every project has a paper).
+  /lab/ascii now shows one box per aspect ratio, reusing covers.
+- Home background (`HeroAscii.astro`, `morph.ts`, `shapes.ts`): textmode.js letters fly
+  in from both sides, form a bird, hold 5 s, scatter and gather into a cat, and cycle.
+  Letters snap to the character grid; edges get light characters, the middle dense ones.
+  Wide screens: the terminal narrows to 48rem and the shape sits to its right; narrower
+  screens: a band below the terminal. The terminal is frosted glass. Pause button
+  (WCAG 2.2.2), remembered per browser. Reduced motion or no hardware WebGL: the bird is
+  drawn once with Canvas 2D glyph masks. Paused off screen and in hidden tabs.
+- Issues found while reviewing screenshots and fixed: the bird was mostly hidden behind
+  the terminal at 1280px and invisible at 375px (layout above); every cell was a dense
+  glyph (shading by distance from the edge); the static version drew per-cell fillText
+  (switched to the glyph-mask renderer).
+- Tests: tests/e2e/hero-ascii.spec.ts (bird, 5 s hold, cat; decorative and clear of the
+  terminal; pause by keyboard, remembered; reduced motion; phone band, no overflow) and
+  a software-WebGL fallback test in hero.spec.ts.
+- Lighthouse (mobile, home): 68 on the first run (TBT 4.97 s, not reproducible), then 96
+  and 98 (TBT 40 / 70 ms); accessibility, best practices and SEO 100.
+- Checks: build OK (14 pages); astro check 0/0/0; `npm test` 123 passed.
+
+## After the run: soft cream theme (2026-11-02)
+- Tokens in global.css switched to soft cream paper with warm brown ink and a burnt-amber
+  accent (#925300, dark enough for text; cream text on amber fills). Checked contrast for
+  every token on every surface, the card scrim over black glyphs, and the code colors.
+- Also recolored: meta color-scheme and theme-color, the web manifest, favicon.svg (icons
+  and og.png regenerated with `npm run assets`), the palette backdrop and shadow, and the
+  Shiki code theme (now a light theme).
+- ASCII on a light page: the default ramp is now dense-first ('@%#*+=-:. '), so dark
+  pixels get ink and bright ones stay paper; cards default to the page background and the
+  home bird reads its colors from the tokens (faint to accent).
+- Bug found by a flaky test and fixed: with the animation paused, a reload could leave the
+  background empty (the frame requested before stopping the loop was dropped).
+- CLAUDE.md Design direction updated to the cream palette.
+- Checks: build OK; astro check 0/0/0; `npm test` 123 passed (hero-ascii repeated 6x).
+
+## After the run: test home page (2026-11-02)
+- New dev-only page /lab/home (src/pages/lab/_home.astro): only the floating-letters
+  animation, filling the screen under the header; the shape is centred (up to 640px).
+  The real home page is unchanged. Not in the production build.
+- Tests: hero-ascii.spec.ts covers the page; the hold-time test now records phase
+  changes inside the page (it was flaky when the dev server was slow); openWithAscii
+  takes the selector to wait for.
+- Checks: astro check 0/0/0; `npm test` 124 passed; hero-ascii repeated 3x.
+- `astro dev` now sends "/" to /lab/home (302), so a refresh lands on the animation page;
+  the original home is at /?classic in dev and is unchanged in the build. The test dev
+  server sets LAB_HOME=off to keep the real home at "/". `npm test` 124 passed.
+
+## After the run: new shapes, high-density canvas fix (2026-11-02)
+- Shapes are now bird, hacker and dumbbell (Phosphor bird-fill, detective-fill: a black
+  hat with dark glasses, and barbell-fill, drawn short like a dumbbell). A shape can set
+  its own ink; the hacker uses the near-black text color so the hat reads as black.
+- Bug found while reviewing the 375px screenshots and fixed: textmode.js's
+  resizeCanvas() sets the canvas's inline CSS size to its device-pixel size, so on
+  high-density screens a resized canvas showed at 2x, cropped to its top-left quarter.
+  It hit the home animation (almost always, once textmode.js loaded from cache) and the
+  project cards after a window resize. resizeTextmodeCanvas() in webgl.ts clears it.
+  New tests at deviceScaleFactor 2 resize the window and compare sizes; both fail
+  without the fix.
+- Checks: astro check 0/0/0; `npm test` 126 passed; privacy check clean.
+
+## After the run: projects as a list and viewer (2026-11-02)
+- /projects rebuilt after linog.ph: the list on the left (year badge, name, tags,
+  chevron; a row opens to the summary, tags, "Read more" and the code link) and a
+  viewer filling the right side with the open project's cover. Phones: the viewer sits
+  sticky under the header, above the list. Rows are native <details name="project">
+  (one open at a time, keyboard and no-JS friendly). Opening a row sets #id in the URL;
+  a refresh, a shared link or an in-page #id reopens it. The viewer image keeps the
+  project's view-transition name, so it morphs into the project page.
+- Found and fixed while checking: "2projects" (lost space); on phones the opened row's
+  title slid under the sticky viewer (scroll-margin-top plus scrollIntoView); a #id
+  anchor made the browser scroll the whole desktop page (rows have no HTML id now).
+- The ASCII card grid stays on the home page and /lab/cards; the card tests moved there.
+- Tests: projects.spec.ts rewritten (selection, URL, refresh, keyboard, layout at 1280
+  and 375, no JS); content, links, transitions and palette tests updated.
+- Checks: astro check 0/0/0; `npm test` 130 passed; Lighthouse /projects (mobile)
+  98/100/100/100 twice, LCP is the viewer image.
+
+## After the run: page themes (2026-11-02)
+- Home: a left-to-right wash from sapphire into ocean blue, with neon jade (the shapes,
+  prompt, cursor and current-nav mark). Projects (and project pages): sky blue into
+  cloudy white, with amber red. Publications: red orange into snowy white, with punk
+  yellow. Blog, resume and 404 stay cream.
+- BaseLayout sets <html data-theme> from the URL's section (the /lab/home test page asks
+  for "home"); global.css redefines the tokens per theme, and the body (and the header)
+  paint --color-bg into the new --color-bg-end. theme-color and color-scheme follow.
+- New token --color-accent-text: the AA version of the accent for text, link hovers and
+  focus rings (yellow and bright red are fine as fills but not as text). Text uses of
+  the accent moved to it. Where the accent is close to the page (yellow on white), the
+  cursor, current-nav mark and pressed filter chip get a hairline in accent-text.
+- New token --color-shade keeps the hacker's hat near-black on the blue home.
+- ASCII cards pick their glyph ramp from the background's brightness (dense glyphs for
+  bright pixels on a dark page), so the home cards work on blue.
+- Home muted text lightened to #d9e7f8: at #d6e4f7 it was 4.46:1 on a card scrim over a
+  white glyph.
+- Tests: themes.spec.ts (theme per page, theme-color, the wash, every token pair at AA
+  in the browser, theme change on client-side navigation).
+- Checks: astro check 0/0/0; `npm test` 138 passed; privacy check clean.
+
+## After the run: resume theme (2026-11-02)
+- Resume: onyx black into electric indigo, with tropical mint (the Download PDF button,
+  section marks, timeline dots and bullets, current-nav mark). Only Blog and 404 are
+  cream now.
+- The print styles (and so public/cv.pdf from `npm run cv`) stay black on white:
+  their selector is now `:root[data-theme]`, which outranks the screen theme.
+- Tests: themes.spec.ts covers the resume theme, its wash and a print check (white
+  page, #111 text, light color scheme).
+- Checks: astro check 0/0/0; `npm test` passed; privacy check clean.
+
+## After the run: blog wash, tab order, hover ripple (2026-11-02)
+- Blog (list, posts, tag pages): the cream washes into warm honey #efd8b5, keeping the
+  burnt amber; faint and accent-text are a touch darker there for AA on the honey end.
+  Only the 404 page is flat cream now.
+- Tabs reordered: Home, Projects, Publications, Resume, Blog (NAV in src/lib/site.ts;
+  the header, command palette and 404 page all follow it).
+- Home animation: hovering with a mouse sends ripples outward through the letters
+  within 170 px of the cursor. Crests push letters out, make them denser and light them
+  in the hover mint (accent-strong); troughs thin them. It fades in and out over about
+  a quarter second, runs at 60 fps only while active (holding still stays at 12), and is
+  off for touch, when paused and with reduced motion (the static version).
+- Tests: hero-ascii.spec.ts checks that the canvas around the cursor changes while
+  hovering (about 29% of pixels vs 0.2-0.5% at rest), calms after leaving and stays
+  still when paused; themes.spec.ts covers the blog theme and the flat 404.
+- Checks: astro check 0/0/0; `npm test` passed; privacy check clean.
+
+## After the run: black blog (2026-11-02)
+- Blog (list, posts, tags): deep violet #2a0a6b into black, so it carries on from the
+  resume's electric indigo; amber #ffb224 is the small color. Dark color scheme.
+- Code blocks: the Shiki theme's colors are now CSS variables (--code-* in global.css)
+  built from the page's tokens, so code is dark with amber keywords on the blog and
+  would be navy and red on a project page. Contrast is AA by construction (fg,
+  accent-text and their mixes on the surface) and tested per highlighted token.
+- Checks: astro check 0/0/0; `npm test` 142 passed; privacy check clean. Dev server
+  restarted (astro.config imports the code theme).
+
+## After the run: five bigger shapes (2026-11-02)
+- Home animation shapes, in order: bird, detective (black hat), robot, chip (CPU, for
+  technology; silver ink) and barbell. Robot and chip are Phosphor 2.1.1 fill icons
+  like the others (MIT; licenses/phosphor-icons.txt already covers them).
+- Bigger: the shape box on the animation page is now the stage's full height (the icons
+  carry their own padding), up to 900 px; beside the terminal up to 760 px; on phones
+  95% of the width, in a taller band below the terminal (clamp(18rem, 92vw, 30rem)).
+- Checks: astro check 0/0/0; `npm test` 142 passed; privacy check clean.
+
+## After the run: shapes that act (2026-11-02)
+- Barbell removed; the cycle is bird, detective, robot, chip.
+- Each formed shape now acts during its 5 s hold (src/components/ascii/acts.ts):
+  the bird bobs and crouches, then flies off up and to the right with beating wings
+  (its exit replaces the scatter; the detective gathers from where it left); the
+  detective tips the hat, then a glint crosses the glasses; the robot's antenna
+  flashes, its eyes power on and blink twice, and a scan line sweeps down; the chip
+  sends pulses from its core out along the pins.
+- Acts pose letters when drawing (offset and glow per letter, in the shape's box), so
+  shapes and phase timing are unchanged. Holding runs at 30 fps when the shape acts.
+- /lab/home/?still turns acts off (the ripple test needs a still shape).
+- Tests: a new test checks the bird bobbing and its flight path; the ripple test uses
+  ?still.
+- Checks: astro check 0/0/0; `npm test` passed; privacy check clean.
+
+## After the run: the bird flaps (2026-11-02)
+- The bird no longer bobs or crouches: its body stays still and only its wing (the
+  strip along its back that the icon cuts off from the body) beats, turning about
+  the shoulder and bending there. Six beats per hold, ending wing-down so the
+  take-off's first beat follows on; in flight it beats every 300 ms instead of the
+  old whole-body squash. Raised, the wing is drawn shorter (foreshortened).
+- The raised wing reaches past the shape's box, so beside the terminal the shape now
+  keeps 24 px from it (the wide-screen test caught the wing behind the terminal).
+- Tests: the bird test now checks that the wing side of the shape moves (about 3.6% of
+  its pixels) while the head side only twinkles (0.3 to 0.6%), then the flight.
+- Checks: astro check 0/0/0; `npm test` passed; privacy check clean.
+
+## After the run: the bird winks (2026-11-02)
+- While it holds, the bird sits still and winks once (about 2 s in): an eyelid slides
+  down over the eye (the icon's hole), with a bright lid line, and back up. Acts can
+  now add letters into a hole of the shape (a "cover" in acts.ts).
+- At the end of the hold it flies off as before, beating its wing only in flight.
+- The icon's line between wing and body is left out, so the bird is one solid shape.
+  In flight the raised wing is drawn as a copy and its letters also stay in the body
+  (the back stays whole), so no gap opens there either.
+- Tests: the bird test checks the shape stays still while it sits (0.1 to 0.3% of
+  pixels change), the eye changes during the wink (about 7%) and is back after it,
+  then the flight.
+- Checks: astro check 0/0/0; `npm test` passed; privacy check clean.
+
+## After the run: light wings in flight (2026-11-03)
+- In flight the bird no longer lifts the strip of letters along its back. It grows a
+  slim, pointed wing in its light tone (--color-faint) from the shoulder, about a third
+  of its length, beating every 300 ms between pointing back and up-back; the body only
+  tilts up. The wing is a cover drawn over the body that moves with the flying bird.
+- Acts are now scenes per phase (pose, cover or both, for the hold and the flight);
+  the strip-wing code and the "letter stays in place" copy are gone. The extra room
+  beside the terminal is back to the plain margin (the small wing stays in its box).
+- Tests: the bird test also checks the light wing: no such pixels while it sits, about
+  2,900 in flight.
+- Checks: astro check 0/0/0; `npm test` passed; privacy check clean.
+
+## After the run: the bird's own wing (2026-11-03)
+- No wing is drawn on any more. The bird's wing is the bright piece in the middle of
+  its body (its densest letters, '#' and up). In flight it beats every 300 ms about its
+  upper end, drawn over the rest, while the body's mid tone fills the spot it leaves;
+  the body only tilts up. Sitting is unchanged (still, one wink).
+- Letters now carry their density, which acts receive; the drawn-wing cover and the
+  light tone are gone.
+- Tests: new acts.spec.ts checks the acts directly (the bird does nothing but wink
+  while it sits; in flight only its densest letters swing, the rest only tilts, and no
+  wing is drawn on). The bird's browser test checks no light wing pixels appear in
+  flight and the flight path. A pixel measure of the beat was tried and dropped: the
+  tilt alone moved the measure 12 px against 20 px with the beat, too close to trust.
+- Checks: astro check 0/0/0; `npm test` passed; privacy check clean.
+
+## After the run: captions under the shapes (2026-11-03)
+- Each shape has a caption, formed by letters the same way (they gather from the
+  scatter with the shape, and fly off with the bird): bird "Hello, world", detective
+  "Cybersecurity", robot "Machine Learning and Artificial Intelligence", chip
+  "Technology" (the first two are placeholders; see TODO-for-me).
+- In the shape's own colors, centred halfway between the bottom of the shape and the
+  bottom of the page (the stage), the shape's box leaving room for it.
+- Big where there is room: a 3 x 5 pixel font (pixel-font.ts, drawn for the site), a
+  cell per dot and each dot a filled cell (textmode's font has no full block; the cell's
+  background is colored instead), so letters are five cells tall. Used when every
+  caption fits in three lines and the tallest takes at most 30% of the height (the
+  animation page); otherwise one letter per cell (beside the terminal, on phones). In
+  capitals either way: the pixel font has only capitals, and textmode's font draws a
+  lowercase g much like a 9.
+- Tried first: rasterizing the caption from IBM Plex Mono like the shapes; at the sizes
+  that fit, strokes were half a cell and broke up, so the letters were unreadable.
+- Tests: the caption test checks the bird's caption is about five cells tall, wide, and
+  halfway between the bird and the bottom; the wink test now places the eye from the
+  stage's data-box (the painted box includes the caption).
+- Checks: astro check 0/0/0; `npm test` passed; privacy check clean.
+
+## After the run: captions in letters, Freedom (2026-11-03)
+- The big captions' dots are '#' letters in the shape's color (like the shapes), not
+  filled cells; the filled-cell code is gone.
+- Captions: bird "Freedom", robot "Artificial Intelligence" (now one line at 1280 px, so
+  the robot is a little bigger); chip "Technology"; detective "Cybersecurity" (placeholder).
+- When the bird flies off, its caption bursts like any scatter instead of flying with it
+  (those letters ease out and show flight glyphs while the bird's own keep theirs).
+- Caption letters now flicker during the hold like the shapes' (and the ripple makes
+  their dots denser or lighter); only one-letter-per-cell captions keep their letters
+  under the ripple.
+- Tests: the caption test checks FREEDOM's size and halfway position, and that its rows
+  flicker; the bird test checks the word is no longer in one piece once the bird takes off.
+- Checks: astro check 0/0/0; `npm test` passed; privacy check clean.
+
+## After the run: livelier captions, lighter detective (2026-11-03)
+- Caption letters flicker more: 50 in 1000 at a time against the shapes' 8 (a caption
+  has about a twentieth of a shape's letters, so it rarely showed a flicker before).
+- The detective's ink on the home page (--color-shade) is a light steel #cdd8ea instead
+  of near-black, so it and CYBERSECURITY read clearly on the blue (4.7:1). Other
+  themes keep a near-black --color-shade.
+- Checks: astro check 0/0/0; `npm test` passed; privacy check clean.
+
+## After the run: slow caption scatter, three hats (2026-11-03)
+- Caption letters no longer burst like glass when a shape scatters (or the bird flies
+  off): each breaks off after its own delay (up to 0.5 s), eases in and out, and drifts
+  only 4 to 16% of the stage away, so the word comes apart slowly, still on screen
+  when the next shape gathers it.
+- The detective's hat turns white, blue, then red, a third of the 5 s hold each; a new
+  color sweeps across the hat from the left over 0.4 s. The glasses and caption keep
+  the detective's steel. New tokens --color-hat-white #eef3fa, --color-hat-blue
+  #5fa8ff, --color-hat-red #ff6b66: soft, medium-light, next to the jade and steel.
+  Acts can now set a letter's ink (pose.ink), blended from the shape's edge color by
+  density like the shapes, and drawn nearly opaque.
+- Tests: acts.spec.ts checks the hat's colors per third and the sweep.
+- Checks: astro check 0/0/0; `npm test` passed; privacy check clean.
+
+## After the run: clearer blue hat, captions in the shapes' densest color (2026-11-03)
+- The detective's blue hat is a brighter sky blue (#5ccfff, from #5fa8ff), and a hat's
+  color now fills more of it (blended by density^0.6 instead of the shapes' ^1.5), so
+  the blue no longer sinks into the page's blue. White and red fill out the same way.
+- Captions take the color of their shape's densest letters: FREEDOM matches the bird's
+  light middle (its wing); measured on the canvas, wing (90, 188, 163) and caption
+  (85, 198, 165). The others follow the same rule (CYBERSECURITY the detective's steel,
+  the chip's silver, the robot's jade).
+- Checks: astro check 0/0/0; `npm test` passed; privacy check clean.

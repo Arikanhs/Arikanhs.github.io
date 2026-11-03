@@ -1,0 +1,31 @@
+---
+// Dev-only page (/lab/home): a test home page with only the floating-letters
+// animation from the home background, filling the screen under the header.
+// /lab/home/?still keeps the formed shapes still (no acts), for the ripple test.
+// astro.config.mjs injects the route only for `astro dev`, so it never ships.
+import HeroAscii from '../../components/ascii/HeroAscii.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Home test" description="Test home page with only the ASCII animation." noindex theme="home">
+  <h1 class="sr-only">Home test: ASCII animation</h1>
+  <div class="stage-wrap">
+    <HeroAscii />
+    <script is:inline>
+      // ?still: the formed shapes do not act (data-acts in morph.ts). Read here,
+      // because a prerendered page does not see the query string.
+      if (new URLSearchParams(location.search).has('still')) {
+        document.querySelector('[data-hero-ascii]')?.setAttribute('data-acts', 'off');
+      }
+    </script>
+  </div>
+</BaseLayout>
+
+<style>
+  .stage-wrap {
+    position: relative;
+    isolation: isolate;
+    /* The rest of the screen: the header is --header-h plus its 1px bottom border. */
+    height: calc(100dvh - var(--header-h) - 1px);
+  }
+</style>

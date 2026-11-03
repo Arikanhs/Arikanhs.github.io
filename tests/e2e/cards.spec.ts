@@ -64,8 +64,18 @@ test('ten cards: smooth scrolling, at most a handful of live contexts, clean con
   expect(problems).toEqual([]);
 });
 
+test('every card has an ASCII background and featured cards are larger', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await openWithAscii(page, '/lab/cards');
+  const cards = page.locator('article.card');
+  await expect(cards.locator('[data-ascii]')).toHaveCount(await cards.count());
+  const featured = (await page.locator('article.card.is-featured').first().boundingBox())!;
+  const regular = (await page.locator('article.card:not(.is-featured)').first().boundingBox())!;
+  expect(featured.width * featured.height).toBeGreaterThan(regular.width * regular.height);
+});
+
 test('hover resolves random glyphs into the image and ends on the resting frame', async ({ page }) => {
-  await openWithAscii(page, '/projects/');
+  await openWithAscii(page, '/lab/cards');
   const card = page.locator('article.card').first();
   const root = card.locator('[data-ascii]');
   await expect(root).toHaveAttribute('data-ascii-state', 'live', { timeout: 15_000 });
@@ -85,7 +95,7 @@ test('hover resolves random glyphs into the image and ends on the resting frame'
 });
 
 test('keyboard focus inside a card plays the reveal', async ({ page }) => {
-  await openWithAscii(page, '/projects/');
+  await openWithAscii(page, '/lab/cards');
   const card = page.locator('article.card').first();
   const root = card.locator('[data-ascii]');
   await expect(root).toHaveAttribute('data-ascii-state', 'live', { timeout: 15_000 });
@@ -95,7 +105,7 @@ test('keyboard focus inside a card plays the reveal', async ({ page }) => {
 
 test('with reduced motion, cards stay static and hover plays no effect', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await openWithAscii(page, '/projects/');
+  await openWithAscii(page, '/lab/cards');
   const card = page.locator('article.card').first();
   const root = card.locator('[data-ascii]');
   await expect(root).toHaveAttribute('data-ascii-state', 'static', { timeout: 15_000 });

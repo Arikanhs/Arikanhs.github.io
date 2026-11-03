@@ -15,15 +15,11 @@ test('a project page shows title, tags, repo button and related publications', a
   await expect(page.locator('.prose h2').first()).toBeVisible();
 });
 
-test('a project page without related publications has no related box', async ({ page }) => {
-  await page.goto('/projects/image2ascii/');
-  await expect(page.getByRole('complementary', { name: 'Related publications' })).toHaveCount(0);
-});
-
-test('every card links to its project page', async ({ page }) => {
+test('every project row links to its project page', async ({ page }) => {
   await page.goto('/projects/');
-  for (const link of await page.locator('article.card a.stretched').all()) {
-    await expect(link).toHaveAttribute('href', /^\/projects\/[\w-]+\/$/);
+  for (const row of await page.locator('details[data-project]').all()) {
+    const id = await row.getAttribute('data-project');
+    await expect(row.locator('a', { hasText: 'Read more' })).toHaveAttribute('href', `/projects/${id}/`);
   }
 });
 

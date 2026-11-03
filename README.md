@@ -1,8 +1,10 @@
 # Hasan Serdar Arikan: personal website
 
 The personal site of Hasan Serdar Arikan, a master's student in machine learning, AI and
-cybersecurity. Sections: projects (with colored ASCII art made from each project's
-cover), publications (with code links and BibTeX), a blog (code, math, RSS) and a
+cybersecurity. The home page has an animated ASCII background: letters fly in from the
+sides and form a bird (which winks, then flies off), a detective (whose hat turns white, blue, then red), a robot
+(eyes and antenna light up) and a computer chip (data pulses along its pins). Sections: projects (a list beside a
+viewer that shows the selected project's cover), publications (with code links and BibTeX), a blog (code, math, RSS) and a
 resume (with a printable PDF).
 
 Built with [Astro](https://astro.build) 7, TypeScript (strict) and Tailwind CSS 4.
@@ -15,7 +17,7 @@ Requires Node.js 22.23 or newer (24 recommended).
 
 ```sh
 npm install
-npm run dev        # http://localhost:4321 (dev-only pages: /lab/ascii, /lab/cards)
+npm run dev        # http://localhost:4321 (dev-only pages: /lab/ascii, /lab/cards, /lab/home)
 npm run build      # production build in dist/
 npm run preview    # serve dist/
 ```
@@ -30,7 +32,7 @@ npm run check:private                    # privacy scan (see below)
 ```
 
 First run of the tests: `npx playwright install --only-shell chromium`. The WebGL
-tests (`ascii`, `cards`, `transitions`) use your installed Google Chrome, because
+tests (`ascii`, `hero-ascii`, `cards`, `transitions`) use your installed Google Chrome, because
 Playwright's own headless Chromium only has software WebGL.
 
 ### Other scripts
@@ -59,7 +61,7 @@ date: 2026-11-01
 tags: [Python, ML]
 repo: https://github.com/Arikanhs/my-project   # must be a GitHub repository URL
 demo: https://example.com                      # optional
-cover: ../../assets/projects/my-project.jpg    # source of the ASCII art
+cover: ../../assets/projects/my-project.jpg    # shown in the /projects viewer; ASCII art on cards
 featured: false                                # true: larger card, shown on the home page
 order: 4                                       # position on /projects (ascending)
 ---
@@ -111,6 +113,28 @@ Write in Markdown. Math: $inline$ and $$display$$ (KaTeX). Code blocks are highl
 and get a copy button. Posts with three or more `##`/`###` headings get a table of contents.
 ```
 
+### Colors
+
+Every color is a token in `src/styles/global.css`. The cream default is in `@theme`; the
+home page and every tab have an `html[data-theme=...]` block below it (BaseLayout picks the
+theme from the URL). Each theme is a left-to-right wash from
+`--color-bg` to `--color-bg-end` plus one accent: `--color-accent` for fills and
+`--color-accent-text`, its readable version, for text. Code blocks are colored from the
+same tokens (`--code-*`), so they follow the page. After changing a color, `npm test`
+checks the contrast of every pair, code included (`tests/e2e/themes.spec.ts`).
+
+### The home background
+
+The shapes the letters form are SVG paths in a 256 x 256 box, listed in order in
+`src/components/ascii/shapes.ts` with the caption shown under each (in big pixel letters,
+`pixel-font.ts`, where there is room); the animation cycles through them. Any filled
+silhouette works (icon sets with a "fill" style are a good source; keep their license
+notice in `licenses/`). What each shape does once formed is in
+`src/components/ascii/acts.ts` (one small function per shape, in the shape's 256 x 256
+box). Timing is set at the top of `src/components/ascii/morph.ts`
+(`HOLD_MS` is how long each shape stays), and so are the hover ripple's size and speed
+(`RIPPLE_*`); the colors come from the home theme's tokens.
+
 ### The resume
 
 Edit `src/data/resume.yaml`, then run `npm run cv` so `public/cv.pdf` matches. The schema
@@ -144,7 +168,7 @@ for anything shaped like a street address. Run it before committing.
 
 ```
 src/
-  components/ascii/   AsciiImage + its runtime (textmode.js / Canvas 2D)
+  components/ascii/   AsciiImage + its runtime, HeroAscii + morph (textmode.js / Canvas 2D)
   components/layout/  header, footer
   components/ui/      cards, grids, hero, palette, timeline, ...
   content/            projects, publications, blog (+ content.config.ts)
@@ -153,5 +177,6 @@ src/
 public/               cv.pdf, icons, og.png, robots.txt
 scripts/              cv export, brand assets, covers, privacy check
 tests/e2e/            Playwright + axe tests
+licenses/             notices for third-party artwork (Phosphor Icons)
 docs/                 build log, decisions, plans, owner TODO list
 ```
